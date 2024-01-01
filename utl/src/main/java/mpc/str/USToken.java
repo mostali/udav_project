@@ -1,0 +1,427 @@
+package mpc.str;
+
+import mpc.*;
+import mpc.args.ARG;
+import mpc.ERR;
+import mpc.arr.Arr;
+import mpc.exception.RequiredRuntimeException;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.Array;
+import java.util.*;
+import java.util.function.Predicate;
+
+//String Utils - Parse String Token's
+public class USToken {
+
+
+	public static void main(String[] args) {
+//		P.exit(two("7ta", "t"));
+		testTwoByIndex();
+		testTwo();
+		testTwoPredicate();
+		testPredicate();
+		testFirstLastGreedy();
+	}
+
+	//
+	//*****************************First & Last *****************************
+	//
+	private static void testTwoByIndex() {
+		ERR.state(Arrays.equals(two(" ", 0), new String[]{"", " "}));
+		ERR.state(Arrays.equals(two(" ", 1), new String[]{" ", ""}));
+		ERR.state(X.happensError(() -> two("", 0)));
+		Sys.p("testTwoByIndex OK");
+	}
+
+	private static void testTwo() {
+		ERR.state(Arrays.equals(two("7,", ","), new String[]{"7", ""}), "7,!=" + Arr.as(two("7,", ",")));
+		ERR.state(Arrays.equals(two("7,,", ","), new String[]{"7", ","}), "7,,");
+		ERR.state(Arrays.equals(twoGreedy("7,,", ","), new String[]{"7,", ""}), "greedy 7,," + " != " + Arr.as(twoGreedy("7,,", ",")));
+		Sys.p("testTwo OK");
+	}
+
+	private static void testTwoPredicate() {
+		ERR.state(Arrays.equals(two("7t", ISDIGIT), new String[]{"7", "t"}), "7t");
+		ERR.state(Arrays.equals(two("7", ISDIGIT), new String[]{"7", ""}), "7");
+		ERR.state(Arrays.equals(twoLast("t7", ISDIGIT), new String[]{"t", "7"}), "t7");
+		ERR.state(Arrays.equals(twoLast("7", ISDIGIT), new String[]{"", "7"}), "7");
+		Sys.p("testTwoPredicate OK");
+	}
+
+	private static void testPredicate() {
+		ERR.state("7".equals(first("7t", ISDIGIT)));
+		ERR.state("7".equals(last("t7", ISDIGIT)));
+		Sys.p("testPredicate OK");
+	}
+
+
+	public static void testFirstLastGreedy() {
+//		Sys.exit(two("/a.b.c", "/a.", null));
+		ERR.isEq(first("a.b.c", "."), "a", "first error");//a
+		ERR.isEq(firstGreedy("a.b.c", "."), "a.b", "firstGreedyQk error");//a.b
+		ERR.isEq(firstGreedy("a.b.c", '.'), "a.b", "firstGreedyQk char error");//a.b
+
+		ERR.isEq(last("a.b.c", "."), "c", "lastQk error");//c
+		ERR.isEq(lastGreedy("a.b.c", "."), "b.c", "lastGreedyQk error");//b.c
+//		U.p(UC.isEq(lastRegex("a.b.c", "\\."), "c", "lastRegex error"));//c
+		Sys.p("testFirstLastGreedy OK");
+
+	}
+
+	public static final Predicate<Character> ISDIGIT = c -> Character.isDigit(c);
+
+	/**
+	 * First Token
+	 * return "a.b.c" - > "a"
+	 */
+
+	public static String first(String str, Predicate<Character> testCharacter, String... defRq) {
+		List<Character> last = new ArrayList<>();
+		for (int i = 0; i < str.length(); i++) {
+			char _char = str.charAt(i);
+			if (!testCharacter.test(_char)) {
+				break;
+			}
+			last.add(_char);
+		}
+		if (!last.isEmpty()) {
+			//		return last.stream().map(c -> c.toString()).collect(Collectors.joining());
+			return JOIN.all(last).toString();
+		}
+		return ARG.toDefThrow(() -> new RequiredRuntimeException("Except first string for predicate"), defRq);
+	}
+
+
+	public static <T> T first(String str, char splitDelStr, Class<T> type, T... defRq) {
+		String first = first(str, splitDelStr, null);
+		return firstType(true, str, splitDelStr, type, first, defRq);
+	}
+
+	public static <T> T first(String str, String splitDelStr, Class<T> type, T... defRq) {
+		String first = first(str, splitDelStr, null);
+		return firstType(true, str, splitDelStr, type, first, defRq);
+	}
+
+	@Nullable
+	private static <T> T firstType(boolean firstLast, String str, Object splitDelStr, Class<T> type, String first, T[] defRq) {
+		Exception err = null;
+		if (first != null) {
+			try {
+				return UST.strTo(first, type);
+			} catch (Exception ex) {
+				err = ex;
+			}
+		}
+		if (ARG.isDef(defRq)) {
+			return ARG.toDef(defRq);
+		}
+		String msg = X.f("Wrong type '%s' from %s/'%s' is %s, string '%s'", type, firstLast ? "FIRST" : "LAST", splitDelStr, err == null ? "NULL" : "ERROR", str);
+		throw err == null ? new RequiredRuntimeException(msg) : new RequiredRuntimeException(err, msg);
+	}
+
+	public static String first(String str, char splitDelStr, String... defRq) {
+		return firstOrFirstGreedy(true, str, splitDelStr, defRq);
+	}
+
+	public static String first(String str, String splitDelStr, String... defRq) {
+		return firstOrFirstGreedy(true, str, splitDelStr, defRq);
+	}
+
+	/**
+	 * First Token Greedy
+	 * return "a.b.c" - > "a.b"
+	 */
+	public static String firstGreedy(String str, char splitDelStr, String... defRq) {
+		return firstOrFirstGreedy(false, str, splitDelStr, defRq);
+	}
+
+	public static String firstGreedy(String str, String splitDelStr, String... defRq) {
+		return firstOrFirstGreedy(false, str, splitDelStr, defRq);
+	}
+
+	private static String firstOrFirstGreedy(boolean firstOrGreedy, String str, Object splitDelStr, String... defRq) {
+		if (str != null) {
+			boolean isChar = splitDelStr instanceof Character;
+			int ind = firstOrGreedy ? (isChar ? str.indexOf((char) splitDelStr) : str.indexOf((String) splitDelStr)) : (isChar ? str.lastIndexOf((char) splitDelStr) : str.lastIndexOf((String) splitDelStr));
+			if (ind != -1) {
+				return str.substring(0, ind);
+			}
+		}
+		if (ARG.isDef(defRq)) {
+			return ARG.toDef(defRq);
+		}
+		throw new RequiredRuntimeException("First%s token is null in string `%s`, Delimeter `%s`", firstOrGreedy ? "" : "(Greedy)", str, splitDelStr);
+	}
+
+	/**
+	 * Last Token
+	 * return "a.b.c" - > "c"
+	 */
+
+	public static String last(String str, Predicate<Character> testCharacter, String... defRq) {
+		List<Character> last = new ArrayList<>();
+		for (int i = str.length() - 1; i > -1; i--) {
+			char _char = str.charAt(i);
+			if (!testCharacter.test(_char)) {
+				break;
+			}
+			last.add(_char);
+		}
+		Collections.reverse(last);
+		if (!last.isEmpty()) {
+			//		return last.stream().map(c -> c.toString()).collect(Collectors.joining());
+			return JOIN.all(last).toString();
+		}
+		return ARG.toDefThrow(() -> new RequiredRuntimeException("Except last string for predicate"), defRq);
+	}
+
+	public static <T> T last(String str, char splitDelStr, Class<T> type, T... defRq) {
+		String last = last(str, splitDelStr, null);
+		return firstType(false, str, splitDelStr, type, last, defRq);
+	}
+
+	public static <T> T last(String str, String splitDelStr, Class<T> type, T... defRq) {
+		String last = last(str, splitDelStr, null);
+		return firstType(false, str, splitDelStr, type, last, defRq);
+	}
+
+	public static <T> T lastGreedy(String str, String splitDelStr, Class<T> type, T... defRq) {
+		String last = lastGreedy(str, splitDelStr, null);
+		return firstType(false, str, splitDelStr, type, last, defRq);
+	}
+
+	public static String last(String str, char splitDelStr, String... defRq) {
+		return lastOrLastGreedy(true, str, splitDelStr, 1, defRq);
+	}
+
+	public static String last(String str, String splitDelStr, String... defRq) {
+		return lastOrLastGreedy(true, str, splitDelStr, splitDelStr.length(), defRq);
+	}
+
+	/**
+	 * Last Token Greedy
+	 * return "a.b.c" - > "b.c"
+	 */
+	public static String lastGreedy(String str, char splitDelStr, String... defRq) {
+		return lastOrLastGreedy(false, str, splitDelStr, 1, defRq);
+	}
+
+	public static String lastGreedy(String str, String splitDelStr, String... defRq) {
+		return lastOrLastGreedy(false, str, splitDelStr, splitDelStr.length(), defRq);
+	}
+
+	private static String lastOrLastGreedy(boolean lastOrLastGreedy, String str, Object splitDelStr, int size, String... defRq) {
+		if (str != null) {
+			boolean isChar = splitDelStr instanceof Character;
+			int ind = lastOrLastGreedy ? (isChar ? str.lastIndexOf((char) splitDelStr) : str.lastIndexOf((String) splitDelStr)) : (isChar ? str.indexOf((char) splitDelStr) : str.indexOf((String) splitDelStr));
+			if (ind != -1) {
+				return str.substring(ind + size);
+			}
+		}
+		if (ARG.isDef(defRq)) {
+			return ARG.toDef(defRq);
+		}
+		throw new RequiredRuntimeException("Last%s token is null in string [%s], Delimeter [%s]", lastOrLastGreedy ? "" : "(Greedy)", str, splitDelStr);
+	}
+
+	/**
+	 * *************************************************************
+	 * ---------------------------- NEXT -----------------------
+	 * *************************************************************
+	 */
+
+	public static String next(String str, String startWith, String... defRq) {
+		return next(str, startWith, false, defRq);
+	}
+
+	public static String next(String str, String startWith, boolean ignoreCase, String... defRq) {
+		boolean isStartWith = ignoreCase ? StringUtils.startsWithIgnoreCase(str, startWith) : StringUtils.startsWith(str, startWith);
+		if (isStartWith) {
+			return str.substring(startWith.length());
+		}
+		if (ARG.isDef(defRq)) {
+			return ARG.toDef(defRq);
+		}
+		throw new RequiredRuntimeException("Substr%s token not found in string [%s], StartPart [%s]", ignoreCase ? "" : "(IgnoreCase)", str, startWith);
+	}
+
+	public static String nextEnd(String str, String endsWith, String... defRq) {
+		return nextEnd(str, endsWith, false, defRq);
+	}
+
+	public static String nextEnd(String str, String endsWith, boolean ignoreCase, String... defRq) {
+		boolean isEndWith = ignoreCase ? StringUtils.endsWithIgnoreCase(str, endsWith) : StringUtils.endsWith(str, endsWith);
+		if (isEndWith) {
+			return str.substring(0, str.length() - endsWith.length());
+		}
+		if (ARG.isDef(defRq)) {
+			return ARG.toDef(defRq);
+		}
+		throw new RequiredRuntimeException("SubstrEnd%s token not found in string [%s], StartPart [%s]", ignoreCase ? "" : "(IgnoreCase)", str, endsWith);
+	}
+
+
+	/**
+	 * *************************************************************
+	 * ------------------------- BETWEEN ----------------------
+	 * *************************************************************
+	 */
+
+
+	public static String bw(String str, String start, String end, String... defRq) {
+		return bw(str, start, end, String.class, defRq);
+	}
+
+	public static <T> T bw(String str, String start, String end, Class<T> asType, T... defRq) {
+		String s = bwStr(str, start, end, true);
+		if (s != null) {
+			return UST.strTo(s, asType, defRq);
+		}
+		return ARG.toDefThrow(() -> new RequiredRuntimeException("Error cutting token between start&end '%s'<->'%s', string:%s", start, end, str));
+	}
+
+	public static String bwStrFirst(String pattern, String start, String end, String... defRq) {
+		return bwStr(pattern, start, end, true, defRq);
+	}
+
+	public static String bwStrLast(String str, String start, String end, String... defRq) {
+		return bwStr(str, start, end, false, defRq);
+	}
+
+	//StringUtils.substringBetween(String.valueOf(targetValueParamValue), "#{", "}");
+	//US.substringBetween("hello(world)!", "(", ")", true)) --> 'world'
+	//analog cutFirstLast
+	public static String bwStr(String str, String start, String end, boolean firstLast, String... defRq) {
+		try {
+			int indStart = str.indexOf(start);
+			ERR.isPosOrZero(indStart, "Start string not found", start, str);
+			indStart += start.length();
+			int indEnd = firstLast ? str.indexOf(end) : str.lastIndexOf(end);
+			ERR.isPosOrZero(indEnd, "End string not found", start, str);
+			ERR.isLT(indStart, indEnd, "Start-index must be great that end-index");
+			return str.substring(indStart + 1, indEnd);
+		} catch (Exception ex) {
+			return ARG.toDefThrow(ex, defRq);
+		}
+	}
+
+	/**
+	 * *************************************************************
+	 * ------------------------- TWO ----------------------
+	 * *************************************************************
+	 */
+
+	public static <T> T[] twoAs(String str, String splitDelStr, Class<T> asType, T[]... defRq) {
+		try {
+			String[] two = two(str, splitDelStr, new String[0]);
+			T[] twoAs = (T[]) Array.newInstance(asType, 2);
+			twoAs[0] = UST.strTo(two[0], asType);
+			twoAs[1] = UST.strTo(two[1], asType);
+			return twoAs;
+		} catch (Exception ex) {
+			return ARG.toDefThrow(() -> new RequiredRuntimeException(ex, "Error get two as type '%s' from pattern '%s' wit del '%s'", asType, str, splitDelStr), defRq);
+		}
+	}
+
+	public static String[] two(String str, Predicate test, String[]... defRq) {
+		String first = first(str, test, null);
+		if (first != null) {
+			return new String[]{first, str.substring(first.length())};
+		}
+		return ARG.toDefThrow(() -> new RequiredRuntimeException("Error get two by predicate from pattern '%s'", str), defRq);
+	}
+
+	public static String[] twoLast(String str, Predicate test, String[]... defRq) {
+		String last = last(str, test, null);
+		if (last != null) {
+			return new String[]{str.substring(0, str.length() - last.length()), last};
+		}
+		return ARG.toDefThrow(() -> new RequiredRuntimeException("Error get two(last) by predicate from pattern '%s'", str), defRq);
+	}
+
+	public static String[] two(String str, String splitDelStr, String[]... defRq) {
+		return two(str, splitDelStr, false, defRq);
+	}
+
+	public static String[] twoGreedy(String str, String splitDelStr, String[]... defRq) {
+		return two(str, splitDelStr, true, defRq);
+	}
+
+	public static String[] two(String str, String splitDelStr, boolean greedy, String[]... defRq) {
+		String first = greedy ? firstGreedy(str, splitDelStr, null) : first(str, splitDelStr, null);
+		if (first != null) {
+			int len = first.length() + splitDelStr.length();
+			String second = len == str.length() ? "" : str.substring(len);
+			return new String[]{first, second};
+		}
+		return ARG.toDefThrow(new RequiredRuntimeException("Pattern '%s' need delimiter '%s'", str, splitDelStr), defRq);
+	}
+
+
+	public static String[] two(String str, int splitByPos, String[]... two) {
+		if (str.length() > 0 && splitByPos <= str.length() && splitByPos >= 0) {
+			return new String[]{str.substring(0, splitByPos), str.substring(splitByPos)};
+		}
+		return ARG.toDefThrow(() -> new RequiredRuntimeException("Error getting two token's from string '%s' by split position '%s'", str, splitByPos), two);
+	}
+
+	public static String[] twoByChars(String str, String chars, SplitByChars typeSplitChars) {
+		ERR.notEmpty(str, "String is empty");
+		ERR.notEmpty(chars, "String with chars is empty");
+		for (int i = 0; i < str.length(); i++) {
+			int ind = chars.indexOf(str.codePointAt(i));
+			boolean isContainsChar = ind != -1;
+			if (isContainsChar && SplitByChars.ALLOWED == typeSplitChars) {
+				continue;
+			} else if (!isContainsChar && SplitByChars.DELIMETER == typeSplitChars) {
+				continue;
+			} else {
+				return new String[]{str.substring(0, i), str.substring(i)};
+			}
+		}
+		return new String[]{str, ""};
+	}
+
+	/**
+	 * *************************************************************
+	 * ------------------------- TRIM ----------------------
+	 * *************************************************************
+	 */
+
+
+	public static String trim(String str, Predicate<Character> trimCharacter) {
+		str = trimLeft(str, trimCharacter);
+		str = trimRight(str, trimCharacter);
+		return str;
+	}
+
+	public static String trimLeft(String str, Predicate<Character> trimCharacter) {
+		while (str.length() > 0 && trimCharacter.test(str.charAt(0))) {
+			str = str.substring(1);
+		}
+		return str;
+	}
+
+	public static String trimRight(String str, Predicate<Character> trimCharacter) {
+		while (str.length() > 0 && trimCharacter.test(str.charAt(str.length() - 1))) {
+			str = str.substring(0, str.length() - 1);
+		}
+		return str;
+	}
+
+	/**
+	 * *************************************************************
+	 * ------------------------- TWO ----------------------
+	 * *************************************************************
+	 */
+
+	public enum SplitByChars {
+		DELIMETER, ALLOWED;
+
+		public String[] two(String string, String chars) {
+			return twoByChars(string, chars, this);
+		}
+	}
+}

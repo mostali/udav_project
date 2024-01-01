@@ -1,0 +1,89 @@
+package mpc.types.tks.cmt;
+
+import mpc.arr.Arr;
+import mpc.args.ARG;
+import mpc.ERR;
+import mpc.str.SPLIT;
+import mpc.str.STR;
+import mpc.types.opts.SeqOptions;
+import mpc.rfl.R;
+import mpc.str.UST;
+
+public class Cmd {
+	public static final String METHOD_STR_TO = "strTo";
+	public static final String PTRX_DEF_SPACE_SEP = "\\s++";
+	public final String original;
+	public final String sep;
+
+	public Cmd(String original) {
+		this(original, PTRX_DEF_SPACE_SEP);
+	}
+
+	public Cmd(String original, String separator) {
+		this.original = original;
+		this.sep = separator;
+	}
+
+	@Override
+	public String toString() {
+		return R.sn(getClass()) + " [" + original + "]";
+	}
+
+	public static void main(String[] args) {
+
+	}
+
+	public static <V> OBJ<V> toEqOrAny(String str, OBJ<V> val) {
+		if (val == null) {
+			return (OBJ<V>) OBJ.ANY.newObj(str);
+		}
+		V objV = UST.strTo(str, PTRX_DEF_SPACE_SEP, val.clazz);
+		if (val.val == null) {
+			val = val.newObj(objV);
+		} else {
+			ERR.isEqSafe(objV, val.val);
+		}
+		return val;
+	}
+
+	public static <V> OBJ<V> toEqOrRq(String cmd, OBJ<V> val) {
+		V objV = UST.strTo(cmd, val.clazz);
+		if (val.val == null) {
+			val = val.newObj(objV);
+		} else {
+			ERR.isEqSafe(objV, val.val);
+		}
+		return val;
+	}
+
+	public static <C extends Cmd> C ofAs(CharSequence pattern, Class<C> cmd) {
+		return UST.strTo(pattern, METHOD_STR_TO, cmd);
+	}
+
+	public boolean isOnlyOne() {
+		return true;
+	}
+
+	public static String[] toArgs(String cmd) {
+		return toArgs(cmd, " ",true);
+	}
+
+	public static String[] toArgs(String cmd, String del, boolean... normSpace) {
+		if (ARG.isDefEqTrue(normSpace)) {
+			cmd = STR.normalizeSpace(cmd);
+		}
+		return SPLIT.bySC(cmd, del);
+	}
+
+	public SeqOptions getSeqArgs(int from) {
+		return SeqOptions.of(getArgs(from));
+	}
+
+	public String[] getArgs(int from, String[]... defRq) {
+		return Arr.sublist(toArgs(original), from, defRq);
+	}
+
+	public String[] getArgs(int from, int to, String[]... defRq) {
+		return Arr.sublist(toArgs(original), from, to, defRq);
+	}
+}

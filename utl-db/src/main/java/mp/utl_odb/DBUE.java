@@ -1,0 +1,229 @@
+package mp.utl_odb;
+
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.support.ConnectionSource;
+import mp.utl_ndb.SqlDbUrl;
+import mp.utl_odb.query_core.OperDB;
+import mp.utl_odb.typedb.TypeDb;
+import mpc.*;
+import mpc.args.ARGi;
+import mpc.arr.Arr;
+import mpc.ERR;
+import mpc.exception.NI;
+import mpc.fs.UFS;
+import mpc.rfl.RFL;
+import mp.utl_odb.mdl.AModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import mpc.fs.UDIR;
+import mpc.str.STR;
+import mpz_deprecated.EER;
+
+import java.io.FilenameFilter;
+import java.nio.file.Paths;
+import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
+
+public class DBUE {
+	public static final Logger L = LoggerFactory.getLogger(DBUE.class);
+	public static final String FILE_DB_PREFIX = "db-";
+	public static final String FILE_DB_EXT = ".sqlite";
+	private static final Lock LOCK_NEXT_COLVALUE = new ReentrantLock(false);
+
+	public static <M extends AModel> M incrementColValueSyncNewModel(TypeDb<M> typeDb, String colNameWithId) {
+		Class<M> classModel = typeDb.getClassModel();
+		M model = RFL.inst(classModel);
+		return incrementColValueSync(typeDb, model, colNameWithId);
+	}
+
+	public static <M extends AModel> M incrementColValueSync(TypeDb<M> typeDb, M model, String colNameWithId) {
+		ERR.notNullAll(typeDb, model, colNameWithId);
+		try {
+			if (!LOCK_NEXT_COLVALUE.tryLock(10, TimeUnit.SECONDS)) {
+				throw new IllegalStateException("Create Uid Lock");
+			}
+
+			long newUid;
+			try {
+				newUid = (long) (double) DBU.getMaxValueDouble_OrDefIfEmptyExistedDb(typeDb.getNamedDbUrl(), model.getClass(), colNameWithId, 1.00);
+			} catch (DbEE err) {
+				if (!err.is(DbEE.EE.GET_COL_VALUE)) {
+					X.throwException(err);
+				}
+				if (!typeDb.isEmptyDb()) {
+					X.throwException(err);
+				}
+				newUid = 0;
+			}
+
+			model.setObjectField(colNameWithId, newUid + 1);
+			model.saveAsCreateOrUpdate(typeDb);
+			return model;
+
+		} catch (Exception e) {
+			return X.throwException(e);
+		} finally {
+			LOCK_NEXT_COLVALUE.unlock();
+		}
+
+	}
+
+	private static void merge(String dir, String dbDst, Class<? extends AModel> classModel) {
+
+		List<String> files = UDIR.dir2files(dir);
+
+		Sys.pf("Merge dbs to :{} in :{} , found :{} ", dbDst, dir, files);
+		Set<String> allDb = new HashSet(files);
+
+		for (String db : allDb) {
+			copy(db, dbDst, classModel);
+		}
+
+	}
+
+	private static void copy(String dbSrc, String dbDst, Class<? extends AModel> classModel) {
+		Sys.pf("Copy :%s db:%s to :%s", classModel.getSimpleName(), dbDst, dbDst);
+
+		SqlDbUrl db_src = SqlDbUrl.ofFile(dbSrc);
+		if (!db_src.isExistDb()) {
+			throw new NullPointerException("Db not found :" + dbSrc);
+		}
+
+		SqlDbUrl db_dst = SqlDbUrl.ofFile(dbDst);
+		SqlDbUrl.checkOrCreateDb(db_dst, classModel);
+
+		List<? extends AModel> l = DBU.getModels(db_src, classModel);
+		for (AModel arModel : l) {
+			Long id = arModel.getId();
+			{
+				arModel.setId(null);
+				DBU.updateModelQk(db_dst, arModel, OperDB.create);
+			}
+			L.info("Moved :" + id);
+			L.info(dbSrc + " >>> " + dbDst + "");
+		}
+	}
+
+	public static int appendColumnSafe(SqlDbUrl dbUrl, Class<? extends AModel> classModel, String colName, String colType) {
+		try {
+			return appendColumn(dbUrl, classModel, colName, colType);
+		} catch (Exception ex) {
+			L.error(EER.getMessages("appendColumnSafe", ex));
+			// L.error("appendColumnSafe::" + ex.getMessage()
+			// + (ex.getCause() != null ? ex.getCause().getMessage() : ""));
+			return 0;
+		}
+	}
+
+	// https://stackoverflow.com/questions/4253804/insert-new-column-into-table-in-sqlite
+	public static int appendColumn(SqlDbUrl dbUrl, Class<? extends AModel> classModel, String colName, String colType) {
+		Object model = null;
+		try {
+			ConnectionSource connectionSource = null;
+			Dao dao = null;
+			try {
+
+				connectionSource = new JdbcConnectionSource(dbUrl.getJdbcUrl());
+				dao = DaoManager.createDao(connectionSource, classModel);
+
+				String tableName = AModel.getTableName(classModel);
+
+				return dao.executeRaw("ALTER TABLE " + tableName + " ADD COLUMN " + colName + " " + colType);
+
+			} finally {
+				DBU.closeDaoAndConnection(connectionSource, dao);
+			}
+		} catch (SQLException ex) {
+			throw DbEE.EE.IO_ERROR.I(ex);
+		}
+	}
+
+
+	public static void errorIfNotExist(SqlDbUrl urlDonorDb, String name) {
+		if (urlDonorDb == null || !urlDonorDb.isExistDb()) {
+			throw EER.IS.I(name + " is NOT exist");
+		}
+	}
+
+	public static void updateColumnValues(AModel m, Object[][] values) {
+		for (Object[] pare : values) {
+			if (pare.length != 2) {
+				throw EER.IS.I("Pare values !=2");
+			}
+			m.setObjectFieldOld(pare[0].toString(), pare[1]);
+		}
+	}
+
+	public static List<SqlDbUrl> getAllDb(List<String> dirs) {
+		List<SqlDbUrl> l = Arr.ar();
+		dirs.forEach(e -> {
+			l.addAll(getAllDb(e));
+		});
+		return l;
+	}
+
+	public static List<SqlDbUrl> getAllDb(String dir) {
+		return getAllDbFiles(dir).stream().map(SqlDbUrl::ofFile).collect(Collectors.toList());
+	}
+
+	public static final FilenameFilter FFILTER_SQLITE = (dir, name) -> UFS.isFileWithContent(Paths.get(dir.getAbsolutePath(), name)) && name.endsWith(".sqlite");
+
+	public static List<String> getAllDbFiles(String dir) {
+		return UDIR.dir2files(dir, FFILTER_SQLITE);
+	}
+
+	public static String removeStartAndEndPrefix(String db) {
+		db = STR.removeStartString(db, FILE_DB_PREFIX, false);
+		db = STR.removeEndString(db, FILE_DB_EXT, false);
+		return db;
+	}
+
+	public static <M extends AModel> void copy(SqlDbUrl sqlDbUrlMain, Class<M> clas, int srcRowId, Long... destRowIds) {
+		M srcModel = DBU.getModelById(sqlDbUrlMain, clas, srcRowId, null);
+		M destModel = DBU.getModelById(sqlDbUrlMain, clas, srcRowId, null);
+		NI.stop("wtf, row is same");
+		if (srcModel == null) {
+			throw new NullPointerException("Unknown model by row id :" + srcRowId);
+		}
+
+		for (Long destRowId : destRowIds) {
+			((AModel) srcModel).setId(destRowId);
+			destModel = srcModel;
+
+			boolean resUpdate = DBU.updateModelQk(sqlDbUrlMain, destModel, OperDB.createOrUpdate);
+			DBU.L.info("DBUtils:copy [%s], src[%s],dst[%s], db[%s],result[%s], update:", clas.getSimpleName(), srcRowId, destRowId, sqlDbUrlMain.getDbFile(), resUpdate);
+		}
+	}
+
+	public static <M extends AModel> M getNextModelById(List<M> rows, long... lastId) {
+		if (rows.isEmpty()) {
+			return null;
+		}
+		long _lastId;
+		if (rows.size() == 1 || ARGi.isNotDef(lastId) || ((_lastId = ARGi.toDef(lastId)) <= 0)) {
+			return rows.get(0);
+		}
+		M mdlNext = null;
+		for (M mdl : rows) {
+			if (mdlNext != null) {
+				mdlNext = mdl;
+				break;
+			}
+			if (mdl.getId() == _lastId) {
+				mdlNext = mdl;
+			}
+		}
+		if (mdlNext == null || mdlNext.getId() == _lastId) {
+			mdlNext = rows.get(0);
+		}
+		return mdlNext;
+	}
+}

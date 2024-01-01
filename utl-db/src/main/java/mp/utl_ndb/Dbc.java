@@ -1,0 +1,37 @@
+package mp.utl_ndb;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import mpc.ERR;
+import mpc.types.abstype.AbsType;
+import mpf.contract.IContract;
+import mpc.map.MapTableContract;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+
+@RequiredArgsConstructor
+public class Dbc {
+	@Getter
+	private final Db db;
+
+	@SneakyThrows
+	public static <C extends IContract> List<C> query(Class<C> contract, JdbcUrl jdbcUrl, String sql, Object... args) {
+		return query_(contract, jdbcUrl, sql, args);
+	}
+
+	public static <C extends IContract> List<C> query_(Class<C> contract, JdbcUrl jdbcUrl, String sql, Object... args) throws SQLException {
+		List<List<AbsType>> rows = Db.query_(jdbcUrl, sql, args);
+		List<C> contracts = new ArrayList();
+		for (List<AbsType> row : rows) {
+			Map data = AbsType.asMap(ERR.notEmpty(row));
+			C c = MapTableContract.buildContract_MarkNotRq(data, contract);
+			contracts.add(c);
+		}
+		return contracts;
+	}
+}
