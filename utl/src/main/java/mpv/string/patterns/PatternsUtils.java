@@ -1,0 +1,61 @@
+package mpv.string.patterns;
+
+
+import mpu.str.STR;
+import mpu.str.UST;
+
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+
+public class PatternsUtils {
+
+	public static boolean containsWebLink(String text) {
+		return getWebLink(text) != null;
+	}
+
+	public static String getWebLink(String text) {
+		return STR.getPatternString(text, Patterns.WEB_URL);
+	}
+
+	public static boolean containsIpAddress(String text) {
+		return getIpAddress(text) != null;
+	}
+
+	public static String getIpAddress(String text) {
+		return STR.getPatternString(text, Patterns.IP_ADDRESS);
+	}
+
+	private static final Pattern IP_ADDRESS_WITH_PORT = Pattern
+			.compile("(\\d{1,3}(?:\\.\\d{1,3}){3}(?::\\d{1,5})?)");
+
+	public static String getIpAddressWithPort(String text) {
+		String ipMayHasErrors = STR.getPatternString(text, IP_ADDRESS_WITH_PORT);
+		if (ipMayHasErrors == null) {
+			return null;
+		}
+		String cleanIp = STR.getPatternString(text, Patterns.IP_ADDRESS);
+		if (cleanIp == null) {
+			return null;
+		}
+		if (ipMayHasErrors.indexOf(':') == -1) {
+			return null;
+		}
+		String port = ipMayHasErrors.split(":", 2)[1];
+		if (!UST.isInt(port, new Predicate<Integer>() {
+			@Override
+			public boolean test(Integer i) {
+				return i > 0 && i <= 65535;
+			}
+		})) {
+			return null;
+		}
+		return ipMayHasErrors;
+
+	}
+
+
+	//Patterns
+	public static void main(String[] args) {
+
+	}
+}

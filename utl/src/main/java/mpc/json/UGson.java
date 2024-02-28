@@ -1,0 +1,781 @@
+package mpc.json;
+
+import com.google.gson.*;
+import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.stream.JsonReader;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import mpc.num.UNum;
+import mpu.core.ARG;
+import mpu.core.ARR;
+import mpc.arr.NaturalOrderComparator;
+import mpc.exception.FIllegalArgumentException;
+import mpc.exception.NI;
+import mpc.exception.RequiredRuntimeException;
+import mpc.fs.*;
+import mpc.fs.fd.EFT;
+import mpc.fs.fd.RES;
+import mpc.map.UMap;
+import mpu.str.STR;
+import mpu.str.UST;
+import mpu.Sys;
+import mpu.X;
+import mpu.core.RW;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.Validate;
+
+import java.io.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+public class UGson {
+
+	public static final String EMPTY = "{}";
+
+	public static void exit(Object data) {
+		Sys.p(data);
+		Sys.exit();
+	}
+
+	public static void p(Object data) {
+		Sys.p(data == null ? null : toStringPretty(data.toString()));
+	}
+
+	public static JsonObject toJO(InputStream jsonData) {
+		return new Gson().fromJson(new InputStreamReader(jsonData), JsonObject.class);
+	}
+
+	public static JsonObject toJO(byte[] jsonData) {
+		return new Gson().fromJson(new InputStreamReader(new ByteArrayInputStream(jsonData)), JsonObject.class);
+	}
+
+	public static JsonObject toJO(Map map) {
+		return JO(toStringJson(map));
+	}
+
+	public static JsonObject toJO(String key, List list) {
+		JsonObject jo = new JsonObject();
+		JsonArray arr = new JsonArray();
+		list.stream().forEach(o -> arr.add(JO(String.valueOf(o))));
+		jo.add(key, arr);
+		return jo;
+	}
+
+	public static LinkedTreeMap<String, ?> toMapFromJO(JsonObject json, LinkedTreeMap... defRq) {
+		try {
+			return (LinkedTreeMap<String, ?>) new Gson().fromJson(json, Map.class);
+		} catch (Exception ex) {
+			return ARG.toDefThrow(ex, defRq);
+		}
+	}
+
+	public static Map toMapFromObject(Object json, Map... defRq) {
+		try {
+			Map map = new Gson().fromJson(toStringJsonFromObject(json), Map.class);
+			if (map != null) {
+				return map;
+			}
+			throw new FIllegalArgumentException("Illegal object '%s' for deserialize to map ", json);
+		} catch (Exception ex) {
+			return ARG.toDefThrow(ex, defRq);
+		}
+	}
+
+	@Deprecated
+	public static LinkedHashMap<String, JsonElement> toNativeMap(JsonObject jo) {
+		LinkedHashMap<String, JsonElement> map = new LinkedHashMap<>();
+		jo.entrySet().forEach(e -> map.put(e.getKey(), e.getValue()));
+		return map;
+	}
+
+	public static Map toMapFromString(Path pathJson, Map... defRq) {
+		return toMapFromString(RW.readContent(pathJson), defRq);
+	}
+
+	public static Map toMapFromString(CharSequence json, Map... defRq) {
+		Exception err;
+		try {
+			Map map = new Gson().fromJson(json.toString(), Map.class);
+			if (map != null) {
+				return map;
+			}
+			err = new FIllegalArgumentException("Map is null after deserialize");
+		} catch (Exception ex) {
+			err = ex;
+		}
+		Exception finalErr = err;
+		return ARG.toDefThrow(() -> new RequiredRuntimeException(finalErr, "Illegal json '%s'", json), defRq);
+	}
+
+	public static Map toMapFromJO(JsonObject json, Map... defRq) {
+		Exception err;
+		try {
+			Map map = new Gson().fromJson(json, Map.class);
+			if (map != null) {
+				return map;
+			}
+			err = new FIllegalArgumentException("Map is null after deserialize ");
+		} catch (Exception ex) {
+			err = ex;
+		}
+		Exception finalErr = err;
+		return ARG.toDefThrow(() -> new RequiredRuntimeException(finalErr, "Illegal json '%s'", json), defRq);
+	}
+
+	public static String toStringJsonFromKeyValues(Object... keyValues) {
+		return toStringJson(UMap.of(keyValues));
+	}
+
+	public static String toStringJson(Map json) {
+		return new Gson().toJson(json);
+	}
+
+	public static String toStringJson(JsonObject json) {
+		return json.getAsString();
+	}
+
+	public static JsonObject JO(Map json) {
+		return JO(toStringJson(json));
+	}
+
+	public static <T> T as(String json, Class<T> asType) {
+		return new Gson().fromJson(json, asType);
+	}
+
+	public static String toStringJsonFromObject(Object object) {
+		return new Gson().toJson(object);
+	}
+
+	public static JsonArray JA(String response, JsonArray... defRq) {
+		try {
+			return new Gson().fromJson(response, JsonArray.class);
+		} catch (Exception ex) {
+			return ARG.toDefThrow(() -> new RequiredRuntimeException("Error parse JsonArray from json '%s' (%s)", STR.substrStartEndInsert(response, 10, 10, "...", response)), defRq);
+		}
+	}
+
+	public static <T> T toObjectFromMap(Map map, Class<T> asType, T... defRq) {
+		try {
+			return new Gson().fromJson(toStringJson(map), asType);
+		} catch (Exception ex) {
+			return ARG.toDefThrow(() -> new RequiredRuntimeException("Error parse type '%s' from map '%s'", asType, map), defRq);
+		}
+	}
+
+	public static boolean isEmpty(JsonElement element, boolean strictNN) {
+		if (element == null) {
+			if (ARG.isDefEqTrue(strictNN)) {
+				throw new NullPointerException("Json is null");
+			}
+			return true;
+		} else if (element.isJsonObject()) {
+			return element.getAsJsonObject().entrySet().isEmpty();
+		} else if (element.isJsonArray()) {
+			return element.getAsJsonArray().isEmpty();
+		} else if (element.isJsonPrimitive()) {
+			return X.empty(element.getAsJsonPrimitive().getAsString());
+		}
+		return element.isJsonNull();
+	}
+
+	public static boolean isGson(String json) {
+		return UGson.JO(json, null) != null;
+	}
+
+	public static boolean isGsonContent(Path file) {
+		return isGson(RW.readContent(file));
+	}
+
+	public static void createEmptyJsonFile(Path file) {
+		UFS_BASE.MKFILE.createEmptyFileMkdirsIfNotExist(file, true);
+	}
+
+	public static JsonObject toJsonObjectFromAnyObject(Object issue) {
+		return of(toStringJsonFromObject(issue), JsonObject.class);
+	}
+
+	public static <T> T toObject(JsonPrimitive obj, Class<T> clazz, T... defRq) {
+		if (clazz.isAssignableFrom(obj.getClass())) {
+			return clazz.cast(obj);
+		} else if (Number.class.isAssignableFrom(clazz)) {
+			if (obj.isNumber()) {
+				return UNum.toNumber(obj.getAsNumber(), clazz, defRq);
+			} else if (obj.isString()) {
+				return UST.strTo(obj.getAsString(), clazz);
+			}
+		} else if (clazz.isPrimitive()) {
+			throw NI.stop("ni impl:" + clazz + ":" + obj);
+		} else if (CharSequence.class.isAssignableFrom(clazz)) {
+			return (T) obj.toString();
+		} else if (Boolean.class.isAssignableFrom(clazz)) {
+			return obj.isBoolean() ? (T) (Boolean) obj.getAsBoolean() : (T) UST.BOOL(obj.toString(), (Boolean[]) defRq);
+		}
+		return ARG.toDefThrow(() -> new RequiredRuntimeException("Wrong Value [" + obj + "] for type [" + clazz + "]"), defRq);
+	}
+
+	public enum TypeGson {
+		NULL, PRIMITIVE, ARRAY, OBJECT;
+
+		public static TypeGson of(JsonElement el, TypeGson... defRq) {
+			if (el.isJsonPrimitive()) {
+				return PRIMITIVE;
+			} else if (el.isJsonObject()) {
+				return OBJECT;
+			} else if (el.isJsonArray()) {
+				return ARRAY;
+			} else if (el.isJsonNull()) {
+				return NULL;
+			}
+			if (ARG.isDef(defRq)) {
+				return ARG.toDef(defRq);
+			}
+			throw el == null ? new RequiredRuntimeException("JsonElement is null") : new RequiredRuntimeException("JsonElement is undefined:" + el.getClass().getSimpleName());
+		}
+
+		public static <T> T to(JsonElement je, Class<T> type, T... defRq) {
+			if (je != null) {
+				if (type.isAssignableFrom(je.getClass())) {
+					if (type == JsonPrimitive.class) {
+						return type.cast(je.getAsJsonPrimitive());
+					} else if (type == JsonObject.class) {
+						return type.cast(je.getAsJsonObject());
+					} else if (type == JsonArray.class) {
+						return type.cast(je.getAsJsonArray());
+					} else if (type == JsonNull.class) {
+						return type.cast(je.getAsJsonNull());
+					} else if (type == JsonElement.class) {
+						throw NI.stop("wth");
+					}
+				}
+			}
+			if (ARG.isDef(defRq)) {
+				return ARG.toDef(defRq);
+			} else if (je == null) {
+				throw new RequiredRuntimeException("JE is null");
+			}
+			throw new RequiredRuntimeException("What is type [%s], except [%s]?" + je.getClass().getSimpleName(), type);
+		}
+	}
+
+	@RequiredArgsConstructor
+	private static class JsonObjectComparator<T> implements Comparator<JsonObject> {
+		public final String key;
+
+		public static Comparator<? super JsonElement> of(String sort_key) {
+			return new JsonObjectComparator(sort_key);
+		}
+
+		@Override
+		public int compare(JsonObject o1, JsonObject o2) {
+			JsonPrimitive asJsonPrimitive1 = getJP(o1, key);
+			JsonPrimitive asJsonPrimitive2 = getJP(o2, key);
+			return NaturalOrderComparator.NUMERICAL_ORDER.compare(asJsonPrimitive1.getAsString(), asJsonPrimitive2.getAsString());
+		}
+
+	}
+
+	public static void addProp(JsonObject jo, String key, String val) {
+		jo.addProperty(key, val);
+	}
+
+	public static JsonObject addObj(JsonObject jo, String key, String json) {
+		JsonObject pretty = pretty(json);
+		jo.add(key, pretty);
+		return pretty;
+	}
+
+	public static boolean eq(String json, String json2) {
+		JsonElement o1 = parse(json);
+		JsonElement o2 = parse(json2);
+		return o1.equals(o2);
+	}
+
+	public static JsonElement parse(String json) {
+		return JsonParser.parseString(json);
+	}
+
+	public static List<JsonElement> toList(JsonArray jo) {
+		List<JsonElement> all = new ArrayList<>();
+		jo.forEach(e -> all.add(e));
+		return all;
+	}
+
+	public static LinkedHashMap<String, JsonElement> toMapSyntetic(JsonObject jo) {
+		//LinkedHashMap<String, JsonElement> map = jo.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (x, y) -> y, LinkedHashMap::new));
+		LinkedHashMap<String, JsonElement> map = new LinkedHashMap<>();
+		jo.entrySet().forEach(e -> map.put(e.getKey(), e.getValue()));
+		return map;
+	}
+
+	/**
+	 * *************************************************************
+	 * ---------------------------- GET --------------------------
+	 * *************************************************************
+	 */
+
+	public static JsonPrimitive getJP(JsonObject jsonObject, String key, JsonPrimitive... defRq) {
+		JsonPrimitive asJsonPrimitive = jsonObject.getAsJsonPrimitive(key);
+		if (asJsonPrimitive != null) {
+			return asJsonPrimitive;
+		} else if (ARG.isDef(defRq)) {
+			return ARG.toDef(defRq);
+		}
+		throw new RequiredRuntimeException("NPE by key '%s' from object '%s'", key, jsonObject);
+	}
+
+	/**
+	 * *************************************************************
+	 * ---------------------------- OBJECT --------------------------
+	 * *************************************************************
+	 */
+
+	public static Map getValueObjectAsMap(String jo, String[] keys, Map... defRq) {
+		return getValueObjectAsMap(JO(jo), keys, defRq);
+	}
+
+	public static Map getValueObjectAsMap(JsonObject jo, String[] keys, Map... defRq) {
+		JsonObject joDst;
+		if (ARG.isDef(defRq)) {
+			joDst = getValueObject(jo, keys, null);
+			if (joDst == null) {
+				return ARG.toDef(defRq);
+			}
+		} else {
+			joDst = getValueObject(jo, keys);
+		}
+		return toMapSyntetic(joDst);
+	}
+
+	public static JsonObject getValueObject(String jo, String[] keys, JsonObject... defRq) {
+		return getValueObject(JO(jo), keys, defRq);
+	}
+
+	public static JsonObject getValueObject(String jo, String key, JsonObject... defRq) {
+		return getValueObject(JO(jo), key, defRq);
+	}
+
+	public static JsonObject getValueObject(JsonElement jo, String[] keys, JsonObject... defRq) {
+		return getNode(jo, keys, JsonObject.class, defRq);
+	}
+
+	public static JsonObject getValueObject(JsonElement jo, String key, JsonObject... defRq) {
+		return getNode(jo, key, JsonObject.class, defRq);
+	}
+
+	/**
+	 * *************************************************************
+	 * ---------------------------- ARRAY --------------------------
+	 * *************************************************************
+	 */
+
+	public static List<JsonElement> getValueArrayAsList(String jo, String[] keys, List<JsonElement>... defRq) {
+		return getValueArrayAsList(JO(jo), keys, defRq);
+	}
+
+	public static List<JsonElement> getValueArrayAsList(JsonObject jo, String[] keys, List<JsonElement>... defRq) {
+		JsonArray ja;
+		if (ARG.isDef(defRq)) {
+			ja = getValueArray(jo, keys, null);
+			if (ja == null) {
+				return ARG.toDef(defRq);
+			}
+		} else {
+			ja = getValueArray(jo, keys);
+		}
+		return toList(ja);
+	}
+
+	public static JsonArray getValueArray(String jo, String key, JsonArray... defRq) {
+		return getValueArray(JO(jo), key, defRq);
+	}
+
+	public static JsonArray getValueArray(String jo, String[] keys, JsonArray... defRq) {
+		return getValueArray(JO(jo), keys, defRq);
+	}
+
+	public static JsonArray getValueArray(JsonObject jo, String[] keys, JsonArray... defRq) {
+		return getNode(jo, keys, JsonArray.class, defRq);
+	}
+
+	public static JsonArray getValueArray(JsonObject jo, String key, JsonArray... defRq) {
+		return getNode(jo, key, JsonArray.class, defRq);
+	}
+
+	public static <T extends JsonElement> T getNode(JsonElement jo0, String[] keys, Class<T> type, T... defRq) {
+		int keyI = 0;
+		if (jo0.isJsonObject()) {
+			JsonObject jo = jo0.getAsJsonObject();
+			for (int i = 0; i < keys.length; i++) {
+				String key = keys[i];
+				keyI = i;
+				if (i == keys.length - 1) {
+					return getNode(jo, key, type, defRq);
+				}
+				jo = jo.getAsJsonObject(key);
+				if (jo == null) {
+					break;
+				}
+			}
+		}
+		if (ARG.isDef(defRq)) {
+			return ARG.toDef(defRq);
+		} else if (jo0 == null) {
+			throw new RequiredRuntimeException("JE is null by key %s#%s", keys[keyI], keyI);
+		}
+		throw new RequiredRuntimeException("JE except %s by key %s#%s", type.getSimpleName(), keys[keyI], keyI);
+	}
+
+	public static <T extends JsonElement> T getNode(JsonElement je, String key, Class<T> type, T... defRq) {
+		JsonElement jeByKey = null;
+		if (je != null && je.isJsonObject()) {
+			jeByKey = je.getAsJsonObject().get(key);
+			if (jeByKey != null) {
+				if (jeByKey.isJsonObject() && type == JsonObject.class) {
+					return (T) jeByKey.getAsJsonObject();
+				} else if (jeByKey.isJsonArray() && type == JsonArray.class) {
+					return (T) jeByKey.getAsJsonArray();
+				} else if (jeByKey.isJsonPrimitive() && type == JsonPrimitive.class) {
+					return (T) jeByKey.getAsJsonPrimitive();
+				}
+			}
+		}
+		if (ARG.isDef(defRq)) {
+			return ARG.toDef(defRq);
+		} else if (je == null) {
+			throw new RequiredRuntimeException("JE is null");
+		} else if (jeByKey == null) {
+			throw new RequiredRuntimeException("JE not found by key '%s'", key);
+		}
+		throw new RequiredRuntimeException("JE except '%s', but it '%s'", type.getSimpleName(), TypeGson.of(jeByKey));
+	}
+
+	/**
+	 * *************************************************************
+	 * ---------------------------- PRIMITIVE --------------------------
+	 * *************************************************************
+	 */
+
+	public static String getValueSimple(String json, String[] keys, String... defRq) {
+		return getValueSimple(JO(json), keys, defRq);
+	}
+
+	public static String getValueSimple(JsonObject jo, String[] keys, String... defRq) {
+		int keyI = 0;
+		for (int i = 0; i < keys.length; i++) {
+			String key = keys[i];
+			keyI = i;
+			if (i == keys.length - 1) {
+				return getValueSimple(jo, key, defRq);
+			}
+			jo = jo.getAsJsonObject(key);
+			if (jo == null) {
+				break;
+			}
+		}
+		if (ARG.isDef(defRq)) {
+			return ARG.toDef(defRq);
+		} else if (jo == null) {
+			throw new RequiredRuntimeException("JO is null by key %s#%s", keys[keyI], keyI);
+		}
+		throw new RequiredRuntimeException("JO except JP by key %s#%s", keys[keyI], keyI);
+	}
+
+	public static String getValueSimple(String json, String key, String... defRq) {
+		return getValueSimple(JO(json), key, defRq);
+	}
+
+	public static <T> T getValueSimpleAs(JsonElement je, String key, Class<T> asType, T... defRq) {
+		try {
+			String val = getValueSimple(je, key);
+			return UST.strTo(val, asType, defRq);
+		} catch (Exception ex) {
+			return ARG.toDefThrow(() -> new RequiredRuntimeException(ex, "JP '%s' as type '%s' not found", key, asType), defRq);
+		}
+	}
+
+	public static String getValueSimpleOr(JsonElement je, String[] keys, String... defRq) {
+		if (je != null) {
+			for (String key : keys) {
+				String vl = getValueSimple(je, key, null);
+				if (vl != null) {
+					return vl;
+				}
+			}
+		}
+		return ARG.toDefThrow(() -> new RequiredRuntimeException("JP '%s' not found by keys", ARR.as(keys)), defRq);
+	}
+
+	//TODO - use getNode
+	public static String getValueSimple(JsonElement je, String key, String... defRq) {
+		JsonPrimitive node = getNode(je, key, JsonPrimitive.class, null);
+		if (node != null) {
+			return node.getAsString();
+		}
+		if (true) {
+			return ARG.toDefThrow(() -> new RequiredRuntimeException("JP '%s' not found by key", key), defRq);
+		}
+		JsonElement jeByKey = null;
+		if (je != null && je.isJsonObject()) {
+			jeByKey = je.getAsJsonObject().get(key);
+			if (jeByKey != null && jeByKey.isJsonPrimitive()) {
+				return jeByKey.getAsString();
+			}
+		}
+		if (ARG.isDef(defRq)) {
+			return ARG.toDef(defRq);
+		} else if (je == null) {
+			throw new RequiredRuntimeException("JE is null");
+		} else if (jeByKey == null) {
+			throw new RequiredRuntimeException("JE not found by key '%s'", key);
+		}
+		throw new RequiredRuntimeException("JE except JP, but it '%s'", TypeGson.of(jeByKey));
+	}
+
+	/**
+	 * *************************************************************
+	 * ---------------------------- PRETTY --------------------------
+	 * *************************************************************
+	 */
+
+//	private final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation()
+//			.registerTypeAdapter(CqlSearchResult.class, new CqlSearchResultDeserializer()).create();
+	private final Gson gsonPretty = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+//			.registerTypeAdapter(CqlSearchResult.class, new CqlSearchResultDeserializer()).create();
+
+	public static JsonReader toLinentJsonReader(InputStream inputStream) throws UnsupportedEncodingException {
+		Validate.notNull(inputStream);
+		InputStreamReader reader = new InputStreamReader(inputStream, "UTF-8");
+		JsonReader jsonReader = new JsonReader(reader);
+		jsonReader.setLenient(true);
+		return jsonReader;
+	}
+
+	@Deprecated
+	public static JsonObject pretty() {
+		return pretty("{}");
+	}
+
+	@Deprecated
+	public static JsonObject pretty(JsonObject jo) {
+		return pretty(jo.toString());
+	}
+
+	@Deprecated
+	public static JsonObject pretty(String json) {
+		JsonElement jsonElement = JsonParser.parseString(json);
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		return gson.fromJson(jsonElement, JsonObject.class);
+	}
+
+	public static String toStringPrettyFromObject(Object jsonObj) {
+		return toStringPretty(toStringJsonFromObject(jsonObj));
+	}
+
+	public static String toStringPretty(String jsonString) {
+		JsonObject json = JsonParser.parseString(jsonString).getAsJsonObject();
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		String prettyJson = gson.toJson(json);
+		return prettyJson;
+	}
+
+	@SneakyThrows
+	public static String toStringPrettyLinent(String jsonString) {
+		InputStream jsonIS = IOUtils.toInputStream(jsonString, Charset.defaultCharset());
+		JsonObject json = JsonParser.parseReader(toLinentJsonReader(jsonIS)).getAsJsonObject();
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		String prettyJson = gson.toJson(json);
+		return prettyJson;
+	}
+
+	public static JsonObject toStringPrettyAs(String jsonString) {
+		return JO(jsonString);
+	}
+
+	/**
+	 * *************************************************************
+	 * ---------------------------- IMPLODE --------------------------
+	 * *************************************************************
+	 */
+
+	public static JsonArray implodeFilesFromDirLevel1(Path dir, LS_SORT ls_sort, List<String> onlyKeys, String sort_key) throws FileNotFoundException {
+		if (sort_key == null && ls_sort == null) {
+			ls_sort = LS_SORT.NATURAL;
+		}
+		List<Path> files = UDIR.ls(dir, EFT.FILE, ls_sort);
+		return implodeFiles(files, onlyKeys, sort_key);
+	}
+
+	public static JsonArray implodeFiles(List<Path> files, List<String> onlyKeys, String sort_key) throws FileNotFoundException {
+		List l = new LinkedList();
+		for (Path allEntytysPath : files) {
+			JsonElement json = new Gson().fromJson(new FileReader(allEntytysPath.toFile()), JsonElement.class);
+			l.add(json);
+		}
+		return implodeElements(l, onlyKeys, sort_key);
+	}
+
+	public static JsonArray implodeElements(List<JsonObject> jsons, List<String> onlyKeys, String sort_key) throws FileNotFoundException {
+		JsonArray jsonArray = new JsonArray();
+		if (X.notEmpty(onlyKeys)) {
+			jsons = jsons.stream().map(jo -> json2json(jo, onlyKeys)).collect(Collectors.toList());
+		}
+		if (X.empty(sort_key)) {
+			jsons.stream().forEach(jsonArray::add);
+		} else {
+			jsons.stream().sorted(JsonObjectComparator.of(sort_key)).forEach(jsonArray::add);
+		}
+		return jsonArray;
+	}
+
+	public static JsonObject json2json(JsonObject src, List<String> keys) {
+		JsonObject jo = new JsonObject();
+		keys.stream().forEach(k -> jo.add(k, src.get(k)));
+		return jo;
+	}
+
+	/**
+	 * *************************************************************
+	 * ---------------------------- OF --------------------------
+	 * *************************************************************
+	 */
+
+	public static JsonObject ofStr(Object objRepresentJson, JsonObject... defRq) {
+		return of(objRepresentJson.toString(), JsonObject.class, defRq);
+	}
+
+
+	public static JsonObject ofFile(String file, JsonObject... defRq) {
+		return of(RW.readContent(Paths.get(file)), JsonObject.class, defRq);
+	}
+
+	public static JsonObject ofFile(String file, Object[] args, JsonObject... defRq) {
+		return of(X.f(RW.readContent(Paths.get(file)), args), JsonObject.class, defRq);
+	}
+
+	public static JsonObject ofRsrc(String file, Object[] args, JsonObject... defRq) {
+		return of(X.f(RES.readString(file), args), JsonObject.class, defRq);
+	}
+
+	public static JsonObject ofRsrc(String file, JsonObject... defRq) {
+
+		return of(RES.readString(file), JsonObject.class, defRq);
+
+	}
+
+	public static JsonElement JE(String json, JsonObject... defRq) {
+		try {
+			return of(json, JsonElement.class, defRq);
+		} catch (JsonSyntaxException ex) {
+			throw new IllegalStateException("JE:" + json, ex);
+		}
+	}
+
+	public static JsonObject JO(Object... args) {
+		return JO(UMap.mapOf(args));
+	}
+
+	public static JsonObject JO(String json, JsonObject... defRq) {
+		try {
+			return of(json, JsonObject.class, defRq);
+		} catch (JsonSyntaxException ex) {
+			throw new IllegalStateException("JO:" + json, ex);
+		}
+	}
+
+	public static JsonObject JO_(String json, JsonObject... defRq) {
+		return of(json, JsonObject.class, defRq);
+	}
+
+	//
+	//
+	public static <T> T of(String json, Class<T> type, T... defRq) {
+		try {
+			return new Gson().fromJson(json, type);
+		} catch (Exception ex) {
+			return ARG.toDefThrow(ex, defRq);
+		}
+	}
+
+	public static <T> T of(Map json, Class<T> type, T... defRq) {
+		return of(toJO(json), type);
+	}
+
+	public static <T> T of(JsonObject json, Class<T> type, T... defRq) {
+		try {
+			return new Gson().fromJson(json, type);
+		} catch (Exception ex) {
+			return ARG.toDefThrow(ex, defRq);
+		}
+	}
+
+	//
+	//
+	public static Function<Map.Entry<?, ?>, Comparable> createSortFuncByJsonPojo(String key, Class castTo) {
+		return entry -> {
+			if (entry == null || entry.getValue() == null || !(entry.getValue() instanceof JsonObject)) {
+				return 0;
+			}
+			JsonPrimitive vl1 = ((JsonObject) entry.getValue()).getAsJsonPrimitive(key);
+			if (vl1 == null) {
+				return 0;
+			}
+			return (Comparable) objTo(vl1, castTo);
+		};
+	}
+
+	public static <T> T objTo(JsonPrimitive json, Class<T> castTo, T... defRq) {
+		if (CharSequence.class.isAssignableFrom(castTo)) {
+			return (T) json.getAsString();
+		} else if (Number.class.isAssignableFrom(castTo)) {
+			if (Integer.class == castTo) {
+				return (T) (Integer) json.getAsInt();
+			} else if (Long.class == castTo) {
+				return (T) (Long) json.getAsLong();
+			} else if (BigDecimal.class == castTo) {
+				return (T) json.getAsBigDecimal();
+			} else if (BigInteger.class == castTo) {
+				return (T) json.getAsBigInteger();
+			} else if (Byte.class == castTo) {
+				return (T) (Byte) json.getAsByte();
+			} else if (Byte.class == castTo) {
+				return (T) (Double) json.getAsDouble();
+			} else if (Byte.class == castTo) {
+				return (T) (Float) json.getAsFloat();
+			} else if (Byte.class == castTo) {
+				return (T) (Short) json.getAsShort();
+			}
+			return (T) json.getAsNumber();
+		} else if (Boolean.class == castTo) {
+			return (T) (Boolean) json.getAsBoolean();
+		} else if (Character.class == castTo) {
+			return (T) (Character) json.getAsCharacter();
+		}
+		return ARG.toDefThrow(() -> new RequiredRuntimeException("Type '%s' not found for casting '%s'", castTo, json), defRq);
+	}
+
+	@RequiredArgsConstructor
+	public static class ComparatorEntryBy implements Comparator<Map.Entry<?, ?>> {
+		final Function<Map.Entry<?, ?>, Comparable> func;
+
+		@Override
+		public int compare(Map.Entry<?, ?> o1, Map.Entry<?, ?> o2) {
+			Comparable c1 = func.apply(o1);
+			if (c1 == null) {
+				return 0;
+			}
+			Comparable c2 = func.apply(o2);
+			if (c2 == null) {
+				return 0;
+			}
+			return c1.compareTo(c2);
+		}
+	}
+
+
+}

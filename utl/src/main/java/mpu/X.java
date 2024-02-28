@@ -1,0 +1,693 @@
+package mpu;
+
+import lombok.SneakyThrows;
+import mpc.exception.FIllegalStateException;
+import mpc.exception.RequiredRuntimeException;
+import mpc.json.UGson;
+import mpc.map.UMap;
+import mpu.core.ARG;
+import mpu.core.ARR;
+import mpu.core.EQ;
+import mpc.str.*;
+import mpu.pare.Key;
+import mpu.str.Hu;
+import mpu.str.Rt;
+import mpu.str.STR;
+import mpu.str.UST;
+import mpv.byteunit.ByteUnit;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.text.MessageFormat;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+//
+//[X](./src/main/java/mpu/X.java) - Size & Empty & Format & etc
+//
+//- Базовый утилитарный класс X (т.е. что это?)
+//- выполняет 5 ключевых функций:
+//		- - size* получение размера объектов
+//- - empty* - проверка объектов на пустоту
+//- - f/fl/fm - форматирование строк
+//- - p - pretty print Object's/Collection's/Map
+//- - to* приводит типы (not null & cast)
+//- - throw* кидает исключения
+//
+//```javascript
+//X.f("Hello %s", "World")   // String.format
+//X.f_("Hello %s", "World")   // безопасный String.format
+//X.fm("Hello {0}", "World") //MessageFormat.format
+//X.fl("Hello {}", "World")  // Аналог log
+//
+////Возвращаем длину объекта
+//X.sizeOf(null) // -1
+//X.sizeOf0(null) // 0
+//X.sizeOf(object) // size of Collection's, Map , etc
+//
+////Проверяем на пустоту
+//X.empty(object) // true/false
+//X.emptyAll(o1, o2, ..) // true/false
+//X.emptyAny(o1, o2, ..) // true/false
+//X.notNullOnlyOne(o1, o2, ..) // true/false
+//
+////печать pretty объектов
+//p(ARR.as(1, 2, 3));
+//ArrayList*3
+//		1
+//		2
+//		3
+//p(ARR.of(1, 2, 3));
+//Array*3
+//		1
+//		2
+//		3
+//
+//p(UMap.of(1, 11, 2, 22, 3, 33));
+//HashMap*3
+//		1=11
+//		2=22
+//		3=33
+//
+//pAsJson(UMap.of(1, 11, 2, 22, 3, 33));
+//		{
+//		"1": 11,
+//		"2": 22,
+//		"3": 33
+//		}
+//
+//		```
+public class X {
+
+	public static void main(String[] args) {
+		IT.state(nullAll(null, null));
+		IT.state(nullAll(null, null, 1), "ok");
+		Object arr = new int[]{1, 2};
+
+
+//		List<Integer> integers = ARR.as(new Integer[]{1, 2, 3});
+		p(ARR.as(1, 22, 3));
+		p(ARR.of(1, 2, 3));
+		p(UMap.of(1, 11, 2, 22, 3, 33));
+		pAsJson(UMap.of(1, 11, 2, 22, 3, 33));
+	}
+
+	public static <T> boolean empty(T[] args) {
+		return args == null || args.length == 0;
+	}
+
+	public static boolean empty(Map map) {
+		return map == null || map.isEmpty();
+	}
+
+	/**
+	 * *************************************************************
+	 * ----------------------------- EMPTY --------------------------
+	 * *************************************************************
+	 */
+
+	public static boolean emptyObj_Str(Object obj) {
+		return obj == null ? true : (obj instanceof CharSequence ? ((CharSequence) obj).length() == 0 : false);
+	}
+
+	public static boolean emptyBlankObj_Str(Object cell) {
+		return cell == null ? true : (cell instanceof CharSequence ? ((CharSequence) cell).length() == 0 ? true : StringUtils.isBlank((CharSequence) cell) : false);
+	}
+
+	public static boolean empty(long[] args) {
+		return args == null || args.length == 0;
+	}
+
+	public static boolean empty(int[] args) {
+		return args == null || args.length == 0;
+	}
+
+	public static boolean empty(boolean[] args) {
+		return args == null || args.length == 0;
+	}
+
+	public static boolean nullAll(Object... args) {
+		return Stream.of(IT.NE(args)).noneMatch(o -> o != null);
+	}
+
+	public static boolean nullAnyObj(Object... args) {
+		return Stream.of(IT.NE(args)).anyMatch(o -> o == null);
+	}
+
+	public static boolean notNullAll(Object... args) {
+		return !nullAnyObj(args);
+	}
+
+	public static boolean isNull(Object obj) {
+		return obj == null;
+	}
+
+	public static boolean notNull(Object obj) {
+		return obj != null;
+	}
+
+	public static <T> boolean empty(boolean checkTypeString, Object obj) {
+		return checkTypeString ? emptyObj_Str(obj) : obj == null;
+	}
+
+	public static <T> boolean emptyAllExceptItem(int index, T... args) {
+		if (ARR.isNotIndex(index, args) || X.isNull(args[index])) {
+			return false;
+		}
+		for (int i = 0; i < args.length; i++) {
+			if (i != index) {
+				if (X.notNull(args[i])) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	public static <T> boolean notEmpty(T[] args) {
+		return args != null && args.length > 0;
+	}
+
+	public static <T> boolean notEmpty(Key pare) {
+		return !empty(pare);
+	}
+
+	public static <T> boolean empty(Key pare) {
+		return pare == null ? true : pare.empty();
+	}
+
+
+	public static boolean empty(CharSequence str) {
+		return str == null || str.length() == 0;
+	}
+
+	public static boolean blank(CharSequence str) {
+		return StringUtils.isBlank(str);
+	}
+
+	public static boolean notBlank(CharSequence str) {
+		return !blank(str);
+	}
+
+	public static boolean notEmpty(CharSequence str) {
+		return str != null && str.length() > 0;
+	}
+
+	public static boolean empty(Number num) {
+		return num == null;
+	}
+
+	public static boolean empty(Optional optional) {
+		return optional == null || !optional.isPresent();
+	}
+
+	public static boolean notEmpty(Optional optional) {
+		return !empty(optional);
+	}
+
+	public static boolean emptyOrZero(Number str) {
+		return str == null || str.doubleValue() == 0;
+	}
+
+	public static boolean empty(Collection collection) {
+		return collection == null || collection.isEmpty();
+	}
+
+	public static boolean notEmpty(Map map) {
+		return !empty(map);
+	}
+
+	public static boolean notEmpty(Collection collection) {
+		return collection != null && !collection.isEmpty();
+	}
+
+	public static boolean hasLength(String str) {
+		return notEmpty(str);
+	}
+
+	public static boolean notEmptyAll(String... args) {
+		return Stream.of(IT.NE(args)).noneMatch(X::empty);
+	}
+
+	public static boolean emptyAll(String... args) {
+		return Stream.of(IT.NE(args)).noneMatch(X::notEmpty);
+	}
+
+	public static boolean emptyAll(Collection... args) {
+		return Stream.of(IT.NE(args)).noneMatch(X::notEmpty);
+	}
+
+	public static boolean emptyAllObj_Str_Cll_Num(Object... args) {
+		return Stream.of(IT.NE(args)).noneMatch(o -> !emptyObj_Str_Cll_Num(o));
+	}
+
+	public static boolean emptyAnyObj_Str_Cll(Object... args) {
+		return Stream.of(IT.NE(args)).anyMatch(X::emptyObj_Str_Cll);
+	}
+
+	public static boolean emptyAny(String... args) {
+		return Stream.of(IT.NE(args)).anyMatch(X::empty);
+	}
+
+	public static boolean nullAnyIn(Collection collection) {
+		return collection.stream().anyMatch(o -> o == null);
+	}
+
+	public static boolean emptyOnlyOne(String... args) {
+		boolean found = false;
+		for (String arg : args) {
+			if (empty(arg)) {
+				if (found) {
+					return false;
+				}
+				found = true;
+			}
+		}
+		return found;
+	}
+
+	public static boolean nullOnlyOne(Object... args) {
+		boolean found = false;
+		for (Object arg : args) {
+			if (arg == null) {
+				if (found) {
+					return false;
+				}
+				found = true;
+			}
+		}
+		return found;
+	}
+
+	public static boolean notNullOnlyOne(Object... args) {
+		boolean found = false;
+		for (Object arg : args) {
+			if (arg != null) {
+				if (found) {
+					return false;
+				}
+				found = true;
+			}
+		}
+		return found;
+	}
+
+	public static boolean notEmptyAny_Cll(Collection... collections) {
+		return Stream.of(IT.notEmpty(collections)).anyMatch(X::notEmpty);
+	}
+
+	public static boolean notEmptyAllObj_Str_Cll_Num(Object... args) {
+		return Stream.of(IT.NE(args)).noneMatch(X::emptyObj_Str_Cll_Num);
+	}
+
+	public static boolean notEmptyObj_Str_Cll_Num(Object arg) {
+		return !emptyObj_Str_Cll_Num(arg);
+	}
+
+	public static boolean notEmptyObj_Str_Cll(Object arg) {
+		return !emptyObj_Str_Cll(arg);
+	}
+
+	public static boolean emptyObj_Str_Cll_Num(Object vl) {
+		if (emptyObj_Str_Cll(vl)) {
+			return true;
+		} else if (vl instanceof Number) {
+			return ((Number) vl).doubleValue() == 0;
+		}
+		return false;
+	}
+
+	public static boolean emptyObj_Str_Cll(Object vl) {
+		if (vl == null) {
+			return true;
+		} else if (vl instanceof CharSequence) {
+			return ((CharSequence) vl).length() == 0;
+		} else if (vl instanceof Collection) {
+			return ((Collection) vl).isEmpty();
+		} else if (vl instanceof Map) {
+			return ((Map) vl).isEmpty();
+		}
+		return false;
+	}
+
+	public static boolean NE(CharSequence o) {
+		return notEmpty(o);
+	}
+
+	public static boolean NN(Object o) {
+		return o != null;
+	}
+
+	public static boolean notEmptyAny_Str(String... args) {
+		return Stream.of(IT.NE(args)).anyMatch(X::notEmpty);
+	}
+
+	public static <T> boolean isType(T v, Class clazz) {
+		return v != null && clazz.isAssignableFrom(v.getClass());
+	}
+
+	public static <T> boolean isNotType(T v, Class clazz) {
+		return !isType(v, clazz);
+	}
+
+	public static boolean eqObjAny(Object obj, Object... with) {
+		return EQ.equalsAny(obj, true, with);
+	}
+
+	public static boolean isNotEqObjAny(Object obj, Object... with) {
+		return EQ.notEqualsAny(obj, true, with);
+	}
+
+	/**
+	 * *************************************************************
+	 * -------------------------- Size Of --------------------------
+	 * *************************************************************
+	 */
+
+	public static int sizeOf(CharSequence list) {
+		return list == null ? -1 : list.length();
+	}
+
+	public static <T> int sizeOf(T[] list) {
+		return list == null ? -1 : list.length;
+	}
+
+	public static int sizeOf(String list) {
+		return list == null ? -1 : list.length();
+	}
+
+	public static int sizeOfSerializable(Serializable data) {
+		return data == null ? -1 : data.toString().length();
+	}
+
+	public static long sizeOf(Number num) {
+		return num == null ? -1 : Math.abs(num.longValue());
+	}
+
+	public static int sizeOf0(Object[] list) {
+		return sizeOf(list);
+	}
+
+	public static int sizeOf0(Collection list) {
+		return list == null ? 0 : list.size();
+	}
+
+	public static int sizeOf(Collection list) {
+		return list == null ? -1 : list.size();
+	}
+
+	public static int sizeOf(Map map) {
+		return map == null ? -1 : map.size();
+	}
+
+	public static int sizeOf0(Map map) {
+		return map == null ? -1 : map.size();
+	}
+
+	//	public static int sizeOf(Path iterable) {
+//
+//	}
+	public static long sizeOfFile(Path path, Long... defRq) {
+		try {
+			if (ARG.isDef(defRq) && !Files.isRegularFile(path)) {
+				return 0L;
+			}
+			IT.isFileExist(path);
+			return Files.size(path);
+		} catch (Exception ex) {
+			return ARG.toDefThrow(() -> new RequiredRuntimeException(ex, "Error read file size", path), defRq);
+		}
+	}
+
+	@SneakyThrows
+	public static long sizeOf(Path file, ByteUnit byteUnit) {
+		if (file == null) {
+			return -1;
+		}
+		long l = sizeOf(file);
+		if (l <= 0) {
+			return l;
+		}
+		Double convert = byteUnit.convert(l, ByteUnit.BYTE);
+		return convert.longValue();
+	}
+
+	@SneakyThrows
+	public static long sizeOfHu(Path file, ByteUnit byteUnit) {
+		if (file == null) {
+			return -1;
+		}
+		long l = sizeOf(file);
+		if (l <= 0) {
+			return l;
+		}
+		Double convert = byteUnit.convert(l, ByteUnit.BYTE);
+		return convert < 1.0 ? 0 : convert.longValue();
+	}
+
+	@SneakyThrows
+	public static String sizeOfHuStr(Path file) {
+		if (file == null) {
+			return "-1bb";
+		}
+		long l = sizeOf(file);
+		if (l <= 0) {
+			return "0kb";
+		}
+		Double convert = ByteUnit.MB.convert(l, ByteUnit.BYTE);
+		return convert < 1.0 ? Hu.K(l, 0) + "b" : convert.longValue() + "Mb";
+	}
+
+	@Deprecated //?
+	public static long sizeOf(File file) {
+		return file == null ? -1 : file.length();
+	}
+
+	public static int sizeOf(Iterable iterable) {
+		if (iterable == null) {
+			return -1;
+		}
+		if (iterable instanceof Collection) {
+			return ((Collection) iterable).size();
+		}
+		int count = 0;
+		Iterator it = iterable.iterator();
+		while (it.hasNext()) {
+			count++;
+			it.next();
+		}
+		return count;
+	}
+
+	/**
+	 * *************************************************************
+	 * ---------------------------- Print --------------------------
+	 * *************************************************************
+	 */
+
+	public static String p(Collection... obj) {
+		String str = Stream.of(obj).map(Rt::buildReport).collect(Collectors.joining(STR.NL));
+		System.out.println(str);
+		return str;
+	}
+
+	public static String p(Map... obj) {
+		String str = Stream.of(obj).map(Rt::buildReport).collect(Collectors.joining(STR.NL));
+		System.out.println(str);
+		return str;
+
+	}
+
+	public static String pArr(Object... obj) {
+		String str = Stream.of(obj).map(Rt::buildReportForArray).collect(Collectors.joining(STR.NL));
+		System.out.println(str);
+		return str;
+
+	}
+
+	public static Object p(Object obj) {
+		if (obj != null) {
+			if (obj instanceof Collection) {
+				return p(new Collection[]{(Collection) obj});
+			} else if (obj.getClass().isArray()) {
+				return pArr(obj);
+			} else if (obj instanceof Map) {
+				return p(new Map[]{(Map) obj});
+			}
+		}
+		System.out.println(obj = STR.formatAll(obj));
+		return obj;
+	}
+
+	public static void pAsJson(Object obj) {
+		String stringPrettyFromObject = UGson.toStringPrettyFromObject(obj);
+		p("Json" + "\n" + stringPrettyFromObject);
+	}
+
+	/**
+	 * *************************************************************
+	 * --------------------------- FORMAT -----------------------
+	 * *************************************************************
+	 */
+
+	public static String f(CharSequence message, Object... args) {
+		return args != null && args.length == 0 ? message.toString() : String.format(message.toString(), args);
+	}
+
+	public static String f(String message, Object... args) {
+		return args != null && args.length == 0 ? message : String.format(message, args);
+	}
+
+	public static String fl(CharSequence message, Object... args) {
+		return fl(message == null ? null : message.toString(), args);
+	}
+
+	public static String fl(String message, Object... args) {
+		return args != null && args.length == 0 ? message : f(message.replace("{}", "%s"), args);
+	}
+
+	public static String fm(String message, Object... args) {
+		return args != null && args.length == 0 ? message : new MessageFormat(message).format(args);
+	}
+
+	//auto
+	public static String fa(CharSequence msg, Object... args) {
+		String string = msg.toString();
+		return string.contains("{}") ? X.fl(string, args) : X.f_(string, args);
+	}
+
+	public static String f_(CharSequence template, Object... args) {
+		return f_(template == null ? "" : template.toString(), args);
+	}
+
+	//save method for formatting ( copy from Guava#Preconditions )
+	public static String f_(String template, Object... args) {
+		template = String.valueOf(template);
+		StringBuilder builder = new StringBuilder(template.length() + 16 * args.length);
+		int templateStart = 0;
+
+		int i;
+		int placeholderStart;
+		for (i = 0; i < args.length; templateStart = placeholderStart + 2) {
+			placeholderStart = template.indexOf("%s", templateStart);
+			if (placeholderStart == -1) {
+				break;
+			}
+
+			builder.append(template.substring(templateStart, placeholderStart));
+			builder.append(args[i++]);
+		}
+
+		builder.append(template.substring(templateStart));
+		if (i < args.length) {
+			builder.append(" [");
+			builder.append(args[i++]);
+
+			while (i < args.length) {
+				builder.append(", ");
+				builder.append(args[i++]);
+			}
+
+			builder.append(']');
+		}
+
+		return builder.toString();
+	}
+
+
+	/**
+	 * *************************************************************
+	 * ----------- toObject NotNull or default ---------------------
+	 * *************************************************************
+	 */
+	//copy Objects.toString
+	public static String toString(Object obj, String defaultIfNull) {
+		return (obj != null) ? obj.toString() : defaultIfNull;
+	}
+
+	public static String toString(Object obj) {
+		return String.valueOf(obj);
+	}
+
+	public static <T> T toObjectFromString(CharSequence obj, Class<T> asType, T... defRq) {
+		return UST.strTo(obj, asType, defRq);
+	}
+
+	public static Boolean toBoolean(Boolean obj, Boolean def) {
+		return obj != null ? obj : def;
+	}
+
+	public static Integer toInteger(Integer obj, Integer def) {
+		return obj != null ? obj : def;
+	}
+
+	public static Long toLong(Long obj, Long def) {
+		return obj != null ? obj : def;
+	}
+
+	public static Object toObject(Object obj, Object def) {
+		return obj != null ? obj : def;
+	}
+
+	public static <T> T cast(Object obj) {
+		return (T) obj;
+	}
+
+	public static <T> T toObjectAs(Object obj, Class<T> asType, T... defRq) {
+		return ObjTo.objTo(obj, asType, defRq);
+	}
+
+	/**
+	 * *************************************************************
+	 * ------------- Throw checked error as unchecked  --------------
+	 * *************************************************************
+	 */
+
+	@SuppressWarnings("unchecked")
+	private static <T extends Throwable> void _throwException(Throwable exception) throws T {
+		throw (T) exception;
+	}
+
+	public static <T> T throwErrorNN_OrReturn(Throwable exception, T returnObject) {
+		return exception == null ? returnObject : throwException(exception);
+	}
+
+	public static <T> T throwIfReturnNull(Supplier<Throwable> exception, T returnObject) {
+		return returnObject == null ? throwException(exception.get()) : returnObject;
+	}
+
+	public static <T> T throwIfReturnNull(Throwable exception, T returnObject) {
+		return returnObject == null ? throwException(exception) : returnObject;
+	}
+
+	public static <T> T throwException(Throwable exception) {
+		_throwException(IT.notNull(exception));
+		return null;
+	}
+
+	public static <T> T throwException(String exception, Object... args) {
+		_throwException(new FIllegalStateException(exception, args));
+		return null;
+	}
+
+	/**
+	 * *************************************************************
+	 * ---------------------------- Specific --------------------------
+	 * *************************************************************
+	 */
+
+	public static void nothing() {
+	}
+
+	public static void exit(Object... objs) {
+		Sys.exit(objs);
+	}
+
+	public static boolean equals(Object obj1, Object obj2) {
+		return Objects.equals(obj1, obj2);
+	}
+}
