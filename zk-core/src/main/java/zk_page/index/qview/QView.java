@@ -1,0 +1,117 @@
+package zk_page.index.qview;
+
+import lombok.RequiredArgsConstructor;
+import mpc.exception.RequiredRuntimeException;
+import mpc.exception.WhatIsTypeException;
+import mpc.ui.UColorTheme;
+import mpu.core.ARR;
+import mpu.pare.Pare;
+import mpu.str.RANDOM;
+import org.zkoss.zk.ui.Component;
+import zk_com.base.Bt;
+import zk_com.base_ctr.Div0M;
+import zk_com.core.IZComFadeIO;
+import zk_os.AFC;
+import zk_page.ZKS;
+
+import java.nio.file.Path;
+import java.util.List;
+
+@RequiredArgsConstructor
+public abstract class QView extends Div0M implements IZComFadeIO {
+	public static final List<String> TECH_NAMES_ROOT = ARR.as();//PageSP.PAGENAME_LOGS, AppNoteCoreState.SD3_INDEX_ALIAS, "^"
+
+
+	public static List<Path> getAllSd3() {
+		return AFC.DIR_PLANES_LS();
+	}
+
+
+	public static List<Path> getAllForms(Pare<String, String> sdp3pn) {
+		return AFC.DIR_FORMS_LS(sdp3pn.key(), sdp3pn.val());
+	}
+
+	@Override
+	protected void init() {
+
+		addEffectIn(this);
+
+		appendChild(newBreadDiv());
+
+		if (this instanceof PlanesQView) {
+			init0();
+			return;
+		}
+
+		super.init();
+
+		daemon();
+
+		ZKS.WIDTH(this, 100.0);
+		ZKS.HEIGHT(this, 100.0);
+		ZKS.ABSOLUTE(this);
+		ZKS.TOP_LEFT(this, 0.0, 0.0);
+		ZKS.OPACITY(this, 0.77);
+		ZKS.ZINDEX(this, 11000);
+
+	}
+
+	protected abstract Component newBreadDiv();
+
+	public enum EPlane {
+		ROOT, SD3, PAGE;
+	}
+
+	private EPlane planeType() {
+		if (isRootPlane()) {
+			return EPlane.ROOT;
+		} else if (isSdPlane()) {
+			return EPlane.SD3;
+		} else if (isPagePlane()) {
+			return EPlane.PAGE;
+		}
+		throw new RequiredRuntimeException("Except plane type: " + getClass());
+	}
+
+	public abstract String planeName();
+
+	@Override
+	protected Div0M applyBtStyle(Bt child) {
+		if (isSdPlane() || isRootPlane()) {
+			return super.applyBtStyle(child);
+		} else if (isPagePlane()) {
+			ZKS.ABSOLUTE(child);
+			ZKS.TOP(child, "55px");
+			ZKS.RIGHT(child, "5px");
+			ZKS.BGCOLOR(child, randomBtColor());
+			return this;
+		} else {
+			throw new WhatIsTypeException("ni applyBtStyle for class: " + getClass());
+		}
+	}
+
+	private String randomBtColor() {
+		if (isRootPlane()) {
+			return RANDOM.ARRAY_ITEM(UColorTheme.BLACK);
+		} else if (isSdPlane()) {
+			return RANDOM.ARRAY_ITEM(UColorTheme.BLUE);
+		} else if (isPagePlane()) {
+			return RANDOM.ARRAY_ITEM(UColorTheme.GREEN);
+		} else {
+			throw new WhatIsTypeException("ni applyBtStyle for class: " + getClass());
+		}
+	}
+
+	public boolean isPagePlane() {
+		return this instanceof ItemsQView;
+	}
+
+	public boolean isRootPlane() {
+		return this instanceof PlanesQView;
+	}
+
+	public boolean isSdPlane() {
+		return this instanceof PagesQView;
+	}
+
+}
