@@ -1,0 +1,92 @@
+{
+  "one_time": false,
+  "inline": true,
+  "buttons": [
+    [
+      {
+        "action": {
+          "type": "text",
+          "payload": "{\"button\": \"A\"}",
+          "label": "10"
+        },
+        "color": "primary"
+      },
+      {
+        "action": {
+          "type": "text",
+          "payload": "{\"button\": \"B\"}",
+          "label": "20"
+        },
+        "color": "primary"
+      },
+      {
+        "action": {
+          "type": "text",
+          "payload": "{\"button\": \"C\"}",
+          "label": "30"
+        },
+        "color": "primary"
+      },
+      {
+        "action": {
+          "type": "text",
+          "payload": "{\"button\": \"D\"}",
+          "label": "40"
+        },
+        "color": "primary"
+      }
+    ],
+    [
+      {
+        "action": {
+          "type": "text",
+          "payload": "{\"button\": \"E\"}",
+          "label": "50"
+        },
+        "color": "primary"
+      },
+      {
+        "action": {
+          "type": "text",
+          "payload": "{\"button\": \"F\"}",
+          "label": "60"
+        },
+        "color": "primary"
+      },
+      {
+        "action": {
+          "type": "text",
+          "payload": "{\"button\": \"G\"}",
+          "label": "70"
+        },
+        "color": "primary"
+      },
+      {
+        "action": {
+          "type": "text",
+          "payload": "{\"button\": \"H\"}",
+          "label": "80"
+        },
+        "color": "primary"
+      }
+    ],
+    [
+      {
+        "action": {
+          "type": "text",
+          "payload": "{\"button\": \"K\"}",
+          "label": "...Назад"
+        },
+        "color": "positive"
+      },
+      {
+        "action": {
+          "type": "text",
+          "payload": "{\"button\": \"L\"}",
+          "label": "Далее..."
+        },
+        "color": "positive"
+      }
+    ]
+  ]
+}
