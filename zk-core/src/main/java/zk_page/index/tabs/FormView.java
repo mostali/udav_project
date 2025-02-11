@@ -1,0 +1,230 @@
+package zk_page.index.tabs;
+
+import lombok.RequiredArgsConstructor;
+import mpc.fs.fd.EFT;
+import mpc.str.sym.FD_ICON;
+import mpc.str.sym.SYMJ;
+import mpu.X;
+import mpu.core.ARR;
+import org.zkoss.zk.ui.Component;
+import org.zkoss.zk.ui.HtmlBasedComponent;
+import org.zkoss.zk.ui.event.Events;
+import org.zkoss.zk.ui.event.MouseEvent;
+import org.zkoss.zul.Window;
+import zk_com.base.Lb;
+import zk_com.base.Xml;
+import zk_com.base_ctr.Div0;
+import zk_com.base_ctr.Menupopup0;
+import zk_com.base_ctr.Span0;
+import zk_com.core.IZCom;
+import zk_com.ext.Ddl;
+import zk_com.tabs.Tab0;
+import zk_form.notify.ZKI;
+import zk_form.notify.ZKI_Sec;
+import zk_notes.events.AppEventsFD;
+import zk_notes.control.NodeFactoryCom;
+import zk_notes.control.NodeCom;
+import zk_page.ZKS;
+import zk_page.ZKSession;
+import zk_notes.node.NodeDir;
+import zk_notes.node_state.FormState;
+
+import java.nio.file.Path;
+import java.util.List;
+
+@RequiredArgsConstructor
+public class FormView extends Div0 {
+
+	final NodeDir nodeDir;
+	//	final NodeDir.NVT nvt;
+	final Tab0 tab0;
+
+	public FormView(Tab0 tab0, NodeDir nodeDir, Component... coms) {
+		super(coms);
+		this.nodeDir = nodeDir;
+		this.tab0 = tab0;
+	}
+
+	@Override
+	protected void init() {
+		super.init();
+
+		NodeDir.NVT sessionNVT = getSA_NVT(nodeDir, null);
+		if (sessionNVT == null) {
+			NodeDir.NVT nvtInState = (NodeDir.NVT) nodeDir.state().getAs_STATE(NodeDir.NVT.class, null);
+			if (nvtInState != null) {
+				sessionNVT = nvtInState;
+				setSA_NVT(nodeDir, sessionNVT);
+			} else {
+				setSA_NVT(nodeDir, sessionNVT = nodeDir.nvt(NodeDir.NVT.TEXT));
+			}
+		}
+//		NodeDir.NVT nvt = sessionNVT != null ? sessionNVT : nodeDir.nvt(NodeDir.NVT.TEXT);
+		NodeDir.NVT nvt = sessionNVT;
+
+
+//		Lb empty = Lb.line(nodeDir.fCat("empty"));
+		NodeDirViewFiles dirViewCom = new NodeDirViewFiles(nodeDir, tab0);
+
+		IZCom com;
+
+		NodeDir.NVM nvm = nodeDir.nvm_first(null);
+
+		if (nvm != null) {
+
+			com = NodeFactoryCom.createForm_Media(nodeDir, nvm);
+
+			appendChilds(dirViewCom, (Component) com);
+
+//			setAutoHeiht(nodeDir, (HtmlBasedComponent) com);
+			ZKS.HEIGHT_MIN((HtmlBasedComponent) com, 1600);
+			ZKS.WIDTH_MIN((HtmlBasedComponent) com, 1600);
+
+		} else {
+
+			NodeCom nodeWin = NodeCom.of(nodeDir);
+
+			if (nvt.isWindowMode()) {
+				nodeWin = nodeWin.mode(Window.Mode.EMBEDDED);
+			}
+
+			nodeWin.nvt(nvt).buildAndAppendChildIn(this);
+
+			getChildren().add(0, dirViewCom);
+
+			if (nvt.isWindowMode()) {
+				setAutoHeiht(nodeWin);
+			}
+
+		}
+
+
+	}
+
+	private void setAutoHeiht(NodeCom nodeWin) {
+		HtmlBasedComponent com = (HtmlBasedComponent) nodeWin.com();
+		setAutoHeiht(nodeWin.nodeDir, com);
+	}
+
+	private void setAutoHeiht(NodeDir nodeDir, HtmlBasedComponent com) {
+
+		FormState stateCom = nodeDir.state().stateCom();
+		String minHeightComProp = com.getHeight();
+		String minHeightComVflex = com.getVflex();
+		String minHeight = stateCom.get("min-height", null);
+		String height = stateCom.get("height", null);
+		String minHeightCom = ZKS.getStyleAttrValue(com, "min-height", null);
+		String heightCom = ZKS.getStyleAttrValue(com, "height", null);
+		if (!X.emptyAll(minHeight, height, minHeightCom, heightCom)) {
+			L.info("Auto height found value in com [ cH:{} , cV:{} , cF_mh:{} , cF_h:{}, cS_mh:{} , cS_h:{} ]", minHeightComProp, minHeightComVflex, minHeight, height, minHeightCom, heightCom);
+			return;
+		}
+		String data = nodeDir.fCat("");
+//		long length = nodeDir.fSize();
+		long length = data.length();
+		if (length < 2000) {
+			ZKS.HEIGHT_MIN((HtmlBasedComponent) com, 300);
+		} else if (length < 8000) {
+			ZKS.HEIGHT_MIN((HtmlBasedComponent) com, 800);
+		} else {
+			ZKS.HEIGHT_MIN((HtmlBasedComponent) com, 1600);
+		}
+	}
+
+	@RequiredArgsConstructor
+	static class NodeDirViewFiles extends Div0 {
+		public final NodeDir nodeDir;
+		public final Tab0 tab0;
+
+		@Override
+		protected void init() {
+			super.init();
+
+			Lb nodeLb = Lb.ERR(nodeDir.id() + SYMJ.ARROW_RIGHT_SPEC);
+			appendChild(nodeLb);
+
+			Ddl<NodeDir.NVT> ddl = new Ddl<NodeDir.NVT>(getSA_NVT(nodeDir)) {
+				@Override
+				public boolean onClickItem(MouseEvent e, NodeDir.NVT nvt) {
+					if (e.getKeys() == 258) { //isWithCtrl
+						nodeDir.state().fields().set_VIEW(nvt);
+						ZKI.showMsgBottomRightFast_INFO("Updated '%s' view-state '%s'", nodeDir.nodeId(), nvt);
+					}
+					try {
+
+						//check NVT
+						NodeFactoryCom.createForm_Text(nodeDir, nvt);
+					} catch (Exception ex) {
+						ZKI_Sec.alertFileNotFound(ex);
+						return false;
+					}
+					setSA_NVT(nodeDir, nvt);
+					Events.postEvent(Events.ON_SELECT, tab0, null); //simulate a click
+					return true;
+				}
+
+			};
+			appendChild(ddl);
+
+			appendChild(Xml.HR());
+
+			List<Path> listDir = nodeDir.fLs(EFT.DIR, ARR.EMPTY_LIST);
+			List<Path> listFiles = nodeDir.fLs(EFT.FILE, ARR.EMPTY_LIST);
+
+			Menupopup0 menu = nodeLb.getOrCreateMenupopup((HtmlBasedComponent) getParent());
+
+			AppEventsFD.applyEvent_OPENDIR(menu, nodeDir.toPath());
+			AppEventsFD.applyEvent_OPENDIR_OS(menu, nodeDir.toPath());
+
+			for (Path child : listDir) {
+				appendChild(new FileOrDirSpan(nodeDir, child));
+			}
+			for (Path child : listFiles) {
+				appendChild(new FileOrDirSpan(nodeDir, child));
+			}
+			appendChild(Xml.HR());
+
+//			appendChild(Xml.BR());
+
+		}
+
+		@RequiredArgsConstructor
+		static class FileOrDirSpan extends Span0 {
+			public final NodeDir nodeDir;
+			public final Path fileOrDir;
+
+			@Override
+			protected void init() {
+				super.init();
+				String relativePathDirOrFile = nodeDir.toPath().relativize(fileOrDir).toString();
+				String symj = FD_ICON.getEmojSymbol(fileOrDir);
+				Lb child = new Lb(symj + " " + relativePathDirOrFile);
+				child.cursorOnOver();
+
+				switch (EFT.of(fileOrDir)) {
+					case FILE:
+						AppEventsFD.applyEvent_OPENFILE(child, fileOrDir, Events.ON_DOUBLE_CLICK);
+						AppEventsFD.applyEvent_OPEN_IN_CODE(child.getOrCreateMenupopup(FileOrDirSpan.this), fileOrDir, Events.ON_DOUBLE_CLICK);
+//						child.onDblClick(FileView.getEventShowComInModal(fileOrDir));
+						break;
+					case DIR:
+						AppEventsFD.applyEvent_OPENDIR(child, fileOrDir, Events.ON_DOUBLE_CLICK);
+//						child.onDblClick(SimpleDirView.getEventOpenSimpleMenu(fileOrDir));
+						break;
+
+				}
+
+				appendChild(child);
+			}
+		}
+	}
+
+
+	private static NodeDir.NVT getSA_NVT(NodeDir nodeDir, NodeDir.NVT... defRq) {
+		return ZKSession.getSessionAttrs().getAs(nodeDir.id() + ".nvt", NodeDir.NVT.class, defRq);
+	}
+
+	private static void setSA_NVT(NodeDir nodeDir, NodeDir.NVT nvt) {
+		ZKSession.getSessionAttrs().putAs(nodeDir.id() + ".nvt", nvt);
+	}
+}

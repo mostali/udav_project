@@ -1,0 +1,441 @@
+package zk_pages;
+
+import lombok.SneakyThrows;
+import mp.utl_odb.tree.UTree;
+import mpc.fs.UFS;
+import mpc.json.GsonMap;
+import mpe.core.P;
+import mpe.str.URx;
+import mpu.Sys;
+import mpu.X;
+import mpu.core.RW;
+import mpu.func.Function2;
+import org.zkoss.zk.ui.Component;
+import org.zkoss.zk.ui.event.Events;
+import org.zkoss.zk.ui.event.MouseEvent;
+import org.zkoss.zul.Popup;
+import org.zkoss.zul.Window;
+import zk_com.base.*;
+import zk_com.base_ctr.Div0;
+import zk_com.base_ext.Listbox0;
+import zk_com.ck_editor.CkEditorComposer;
+import zk_com.ext.Ddl;
+import zk_com.ext.uploader.AdvVideo;
+import zk_com.sun_editor.IPerPage;
+import zk_com.sun_editor.SeTbxm;
+import zk_com.uploader.ClipboardLoaderComposer;
+import zk_form.events.Tbx2_CfrmSerializableEventListener;
+import zk_form.notify.NotifyRef;
+import zk_form.notify.ZKI;
+import zk_form.tree.DirViewTree;
+import zk_notes.control.NodeFactory;
+import zk_notes.node.NodeDir;
+import zk_notes.node_srv.NodeEvalType;
+import zk_notes.node_srv.fsman.NodeFileTransferMan;
+import zk_notes.node_state.FormState;
+import zk_os.core.Sdn;
+import zk_os.sec.ROLE;
+import zk_os.sec.Sec;
+import zk_page.ZKC;
+import zk_page.ZKM;
+import zk_page.ZKR;
+import zk_page.ZKS;
+import zk_page.core.PageRoute;
+import zk_page.core.PageSP;
+import zk_page.core.SpVM;
+
+import java.nio.file.Paths;
+import java.util.List;
+
+//@VariableResolver(DelegatingVariableResolver.class)
+@PageRoute(pagename = "democom", role = ROLE.ADMIN)
+public class DemoComPageSP extends PageSP implements IPerPage {
+
+	public DemoComPageSP(Window window, SpVM spVM) {
+		super(window, spVM);
+	}
+
+
+	@SneakyThrows
+	public void buildPageImpl() {
+
+		sectionDb();
+
+		appendChild(Xml.H(2, "prettyfy code component"));
+		appendChild(Xml.HR());
+
+//		appendChild(Xml.ofXml("<pre class=\"prettyprint\">\n" +
+//				"int x = foo();  /* This is a comment  <span class=\"nocode\">This is not code</span>\n" +
+//				"  Continuation of comment */\n" +
+//				"int y = bar();\n" +
+//				"</pre>"));
+		appendChild(new PrettyCodeXml("<pre class=\"prettyprint\">\n" +
+				"int x = foo();  /* This is a comment  <span class=\"nocode\">This is not code</span>\n" +
+				"  Continuation of comment */\n" +
+				"int y = bar();\n" +
+				"</pre>"));
+
+
+		appendChild(Xml.H(2, "WYSIWIG"));
+		appendChild(Xml.HR());
+		SeTbxm modalCom = new SeTbxm("Hello WYSIWIG");
+		//modalCom.renderHead();
+		appendChild(modalCom);
+//		appendChild(new Ln("show").onCLICK(e -> {
+//			ZKM_Editor.openEditorHTML("asd", "asdasd");
+//		}));
+
+		appendChild(Xml.H(2, "Eval  Types"));
+		appendChild(Xml.HR());
+		Sdn sdn = spVM().sdn0();
+		appendChild(new Bt("Reset").onCLICK(e -> {
+			UFS.RM.deleteDir(Sdn.getPageDir(sdn));
+			ZKR.restartPage();
+		}));
+		NodeEvalType[] values = NodeEvalType.values();
+		for (NodeEvalType value : values) {
+			String noteName = value + "-DEMO";
+			FormState formState = FormState.ofFormName_OrCreate(sdn, noteName);
+			Window win;
+			if (formState.existPropsFile()) {
+				win = NodeFactory.openNoteWin_Opened(noteName, sdn);
+			} else {
+				String dataNote = value.loadDefResData(null);
+				if (dataNote == null) {
+					P.warnBig(X.f("DemoCom '%s' not found", value));
+					continue;
+				}
+				win = NodeFileTransferMan.AddNewForm.addNewFormAndOpen(noteName, dataNote).val();
+			}
+			win.doEmbedded();
+			ZKS.WIDTH(win, (int) (100 / values.length) + "%");
+			ZKS.INLINE_BLOCK(win);
+		}
+
+		//
+		//
+
+		appendChild(Xml.H(2, "Popup"));
+		appendChild(Xml.HR());
+
+		//		Bt bt1 = new Bt();
+		Ln bt1 = new Ln("go");
+
+		Popup popup = new Popup();
+		popup.appendChild(new Ln("go"));
+		popup.appendChild(new Lb("go2"));
+		window.appendChild(popup);
+
+		bt1.addEventListener(Events.ON_MOUSE_OVER, e -> popup.open(window, NotifyRef.Pos.after_pointer.name()));
+		appendChild(bt1);
+
+		appendChild(Xml.H(2, "Info msg"));
+		appendChild(Xml.HR());
+
+		for (ZKI.Type value : ZKI.Type.values()) {
+			CharSequence msg;
+			switch (value) {
+				case MODAL_JSON:
+				case MODAL_JSON_BW:
+					msg = GsonMap.ofKV("1", "2", "3", "4", "5", GsonMap.ofKV("1", "2", "3", "4", "5", "6")).toStringJson();
+					break;
+				default:
+					msg = X.f("Hello info message of type '%s'", value);
+					break;
+			}
+			Bt bt = new Bt(value.name()).onCLICK(e -> value.showView(msg));
+			appendChild(bt);
+		}
+		appendChild(Xml.H(3, "Info msg - ERROR"));
+		appendChild(Xml.HR());
+
+		for (ZKI.Type value : ZKI.Type.values()) {
+			try {
+				RW.readLines("file not found");
+			} catch (Exception ex) {
+				Bt bt = new Bt(value.name()).onCLICK(e -> value.showView(ex, X.f("Error message of type '%s'", value)));
+				appendChild(bt);
+
+			}
+		}
+
+
+		appendChild(Xml.H(2, "Tree"));
+		appendChild(Xml.HR());
+		window.appendChild(new DirViewTree());
+
+		appendChild(Xml.H(2, "Ddl"));
+		appendChild(Xml.HR());
+
+		Ddl<NodeDir.NVT> ddl = new Ddl<NodeDir.NVT>(NodeDir.NVT.MD) {
+			@Override
+			public boolean onClickItem(MouseEvent e, NodeDir.NVT item) {
+				Sys.say("ok:" + item);
+				return true;
+			}
+		};
+		appendChild(ddl);
+
+		if (true) {
+			return;
+		}
+
+//		Ddl<String> ddl = new Ddl<String>("333", ARR.as("1", "22", "333")) {
+//			@Override
+//			public void onClickItem(String value) {
+//				Sys.say("ok:" + value);
+//			}
+//		};
+//		appendChild(ddl);
+
+		appendChild(new Bt("cl").onCLICK(e -> {
+			ddl.getChildren().forEach(c -> c.detach());
+		}));
+
+		if (true) {
+			return;
+		}
+		if (true) {
+			window.appendChild(new DirViewTree());
+			return;
+		}
+		if (true) {
+			window.appendChild(CkEditorComposer.loadComponent(Paths.get("tmp/test.wsy")));
+			return;
+		}
+//		if (true) {
+//			window.appendChild(new Embed());
+//		}
+//		if (true) {
+//			AdvVideo video = ZKC.newVideo(Paths.get("/home/dav/Рабочий стол/boysya.MP4"));
+//			window.appendChild(video);
+//			return;
+//		}
+
+
+//		if (false) {
+////			PdfTag embed = new PdfTag();
+////			embed.setContent(new APdf("/home/dav/.data/bea/.planes/.index/ii/.forms/PresentationPdf/ИИ-стартовый набор .pdf"));
+////			embed.setSrc(ZKC.getFirstPage().getDesktop().getExecution().encodeURL("/home/dav/.data/bea/.planes/.index/ii/.forms/PresentationPdf/ИИ-стартовый набор .pdf"));
+//
+//			Iframe embed = new Iframe() {
+//				@Override
+//				public Object getExtraCtrl() {
+//					return new DynamicMedia() {
+//						@Override
+//						public Media getMedia(String s) {
+//							return new APdf("/home/dav/.data/bea/.planes/.index/ii/.forms/PresentationPdf/ii2.docx");
+//						}
+//					};
+//				}
+//			};
+//			window.appendChild(embed);
+//			String src = Utils.getDynamicMediaURI(embed, 1, "ii2.docx", "DOCX");
+//			String iSrc = "https://docs.google.com/gview?url=%s&embedded=true";
+//			embed.setSrc(X.f(iSrc, src));
+//			return;
+//		}
+//
+//		if (true) {
+////			PdfTag embed = new PdfTag();
+////			embed.setContent(new APdf("/home/dav/.data/bea/.planes/.index/ii/.forms/PresentationPdf/ИИ-стартовый набор .pdf"));
+////			embed.setSrc(ZKC.getFirstPage().getDesktop().getExecution().encodeURL("/home/dav/.data/bea/.planes/.index/ii/.forms/PresentationPdf/ИИ-стартовый набор .pdf"));
+//
+//			Embed embed = new Embed() {
+//				@Override
+//				public Object getExtraCtrl() {
+//					return new DynamicMedia() {
+//						@Override
+//						public Media getMedia(String s) {
+//							return new APdf("/home/dav/.data/bea/.planes/.index/ii/.forms/PresentationPdf/ii.pdf");
+//						}
+//					};
+//				}
+//			};
+//			window.appendChild(embed);
+//			String src = Utils.getDynamicMediaURI(embed, 1, "ii.pdf", "PDF");
+//			embed.setDynamicProperty("src", src);
+////			embed.setSrc("https://css4.pub/2015/icelandic/dictionary.pdf");
+//
+//			return;
+//		}
+		if (false) {
+			window.appendChild(Ln.uploadTo("+", Paths.get("./tmp"), 2));
+//			FileUploaderComposer.loadComponent("asd", Paths.get("./tmp"), window);
+			return;
+		}
+
+		Lb hello = new Lb("hello");
+		appendChild(hello);
+
+		Function2<String, String, Object> func = new Function2<String, String, Object>() {
+			@Override
+			public Object apply(String vl1, String vl2) {
+				List<String> allGroup = URx.findAllGroup(vl2, vl1);
+				ZKI.infoEditorBw(allGroup);
+				return null;
+			}
+		};
+
+		hello.getOrCreateMenupopup(window).addMI_Href(Tbx2_CfrmSerializableEventListener.toMenuItemComponent("22", "", new String[2], new String[2], func));
+
+		Div0 divWith = Div0.of();
+		divWith.setWidth("100%");
+		divWith.setHeight("100px");
+
+
+		ClipboardLoaderComposer.loadComponent("aaaaaaa", Paths.get("./tmp"));
+
+
+		AdvVideo video = ZKC.newVideo(Paths.get("/home/dav/Рабочий стол/boysya.MP4"));
+		window.appendChild(video);
+
+		window.appendChild(Xml.HR());
+
+//		window.appendChild(new SingleTopPost());
+
+//		ZkPage.renderHeadRsrcs(window, StdHeadLib.JQUERY_3_1_1);
+//		ZkPage.renderHeadRsrcs(window, StdHeadLib.JQUERY_1_9_1);
+
+//		ZkPage.renderHeadRsrcs(window, StdHeadLib.PAGE_JQ_TOAST);
+//		ZkPage.renderHeadRsrcs(window, StdHeadLib.PAGE_JQ_WIDGET);
+//		ZkPage.renderHeadRsrcs(window, StdHeadLib.PAGE_JQ_TRANSP);
+//		ZkPage.renderHeadRsrcs(window, StdHeadLib.PAGE_JQ_FILEUPLOAD);
+
+//		DdFileUploaderComposer.loadComponent("aaaaaaa", Paths.get("./tmp"));
+
+
+//		SerializableEventListener<UploadEvent> eventUpload = FileUploaderComposer.getEventUpload("./tmp");
+//		ZKE.addEventListenerAll_LOGZK(hello);
+
+//		Events.KEY
+//		appendChild(new Html("<audio controls=true src=\"/@@@uploads/0.mp3\"> </audio>"));
+//		appendChild(new Mp3(Paths.get("/home/dav/.data/bea/@@@uploads/0.mp3")));
+//		appendChild(new Lb("wtf"));
+//		testSunEditor();
+
+//		testCkEditor();
+//
+//		testDnd();
+
+	}
+
+	private void sectionDb() {
+
+		appendChild(Xml.H(2, "Work with Db"));
+		appendChild(Xml.HR());
+//		Bt bt = new Bt("show") {
+//			@Override
+//			public void init() {
+//				super.init();
+//		UTree.tree("def").clear();
+
+		UTree tree = UTree.tree("def");
+		if (tree.isEmptyDb()) {
+			tree.put("key", "val");
+		}
+		Listbox0 def = Listbox0.fromDb(UTree.tree("def").getDbFilePath(), Sec.isAdminOrOwner());
+//				onCLICK(e -> ZKM.showModal("asd", def));
+//			}
+//		};
+//		appendChild(bt);
+		appendChild(def);
+
+	}
+
+	void testSunEditor() {
+//		appendChild(new SeWin());
+//		SeTbxm child = (SeTbxm) new SeTbxm().writable();
+		SeTbxm child = (SeTbxm) new SeTbxm(Paths.get("/tmp/tt")).saveble();
+		appendChild(child);
+//
+		child.setHeight("500px");
+//		window.appendChild(child);
+//		window.appendChild(new SeTextboxFile(Paths.get("/tmp/t")));
+//		appendChild(new Label("uuid:" + child.getUuid()));
+//		Div toolbar = new Div();
+//		DraftPageSP.this.appendChild(toolbar);
+//		toolbar.setSclass("toolb");
+//		ZKS.STYLE(toolbar, "height:100px;border:1px solid red");
+	}
+
+	private void testCkEditor() {
+		window.appendChild(new Lb("aaaaaa"));
+
+		CkEditorComposer.loadComponent(Paths.get("/tmp/test.html"));
+//		child.setFilebrowserImageUploadUrl();
+//		CKeditor child =
+//		CKeditor child = new CKeditor();
+//		child.s
+//		child.addEventListener("onSave", new SerializableEventListener<Event>() {
+//			@Override
+//			public void onEvent(Event event) throws Exception {
+//				U.p("save:" + child.getValue());
+//			}
+//		});
+//		child.addEventListener(Events.ON_CHANGE, new SerializableEventListener<Event>() {
+//			@Override
+//			public void onEvent(Event event) throws Exception {
+//				U.p("change:"+child.getValue());
+//			}
+//		});
+//		child.addEventListener(Events.ON_CHANGING, new SerializableEventListener<Event>() {
+//			@Override
+//			public void onEvent(Event event) throws Exception {
+//				U.p("changING:"+child.getValue());
+//			}
+//		});
+//		appendChild(child);
+	}
+
+	public void appendChild(Component child) {
+		window.appendChild(child);
+	}
+
+
+	static void testDnd() {
+
+//			ZkPage.renderHeadPage_Rsrc("/_com/mouse-event/dnd-simple.js");
+
+//			Div movable = DivWith.of(new Label("wtf"));
+//			ZKS.of(movable).abs().right(20).bottom(20).zindex(1000);
+//			movable.addEventListener("onMouseMove", new SerializableEventListener<Event>() {
+//				@Override
+//				public void onEvent(Event event) throws Exception {
+//					ZK.log("Up:" + event);
+//				}
+//			});
+//			movable.addEventListener("onMouseDown", new SerializableEventListener<Event>() {
+//				@Override
+//				public void onEvent(Event event) throws Exception {
+//					ZK.log("Up:" + event);
+//				}
+//			});
+
+//			ZKE.addEventListener(movable, new SerializableEventListener() {
+//				@Override
+//				public void onEvent(Event event) throws Exception {
+//					U.say("drop1");
+//					ZK.ZLOG("drop1:" + event + ":");
+//				}
+//			}, Events.ON_DROP);
+//			movable.setWidgetListener("onDrop", "alert(event);"); //initialize client side paste listener
+//			movable.setWidgetListener("onBind", "dragElementById(this.uuid);"); //initialize client side paste listener
+
+//			movable.
+//			window.appendChild(movable);
+
+//			Div parent = DivWith.of(new Label("drop to me"));
+//
+//			ZKE.addEventListener(parent, new SerializableEventListener() {
+//				@Override
+//				public void onEvent(Event event) throws Exception {
+//					U.say("drop2");
+//					ZK.ZLOG("drop:2" + event + ":");
+//				}
+//			}, Events.ON_DROP);
+//			parent.setDroppable("true");
+//			window.appendChild(parent);
+
+	}
+}

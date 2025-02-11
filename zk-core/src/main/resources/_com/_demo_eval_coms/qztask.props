@@ -1,0 +1,3 @@
+qztask:zkbea_nett.TgSendMsgJob
+2025-01-30 16:00:00 -msg sendMsgForJob1 -b 3h -a 1m -e 30m
+20250120160000 -msg sendMsgForJob2 -b 3h -a 4h -e 30m
