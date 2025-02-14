@@ -20,7 +20,7 @@ public class PrintTable {
 // or manually
 		tl.addRow("Hi", "I am", "Bob");
 
-		tl.print();
+		tl.printConsole();
 	}
 
 	private static final String[] BLINE = {"-", "\u2501"};
@@ -88,7 +88,7 @@ public class PrintTable {
 			tableList.addRowAs(k, v);
 		});
 		if (ARG.isDefEqTrue(print)) {
-			tableList.print();
+			tableList.printConsole();
 		}
 		return tableList;
 	}
