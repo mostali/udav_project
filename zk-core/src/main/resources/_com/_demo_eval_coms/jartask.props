@@ -1,8 +1,12 @@
 jartask:nsi.ftpcleaner.FtpCleanerMod#invokeContext0
---dir:~/.data/.bin
---jar.filename:ftpcleaner-mod-v1.jar
---#async.wait.ms:-1 is sync wait result (default value)
---#async.wait.ms:1000 is async mode , wait 1s thread respone
+
+--#dir:~/.data/.bin
+--#jar.filename:ftpcleaner-mod-v1.jar
+
+--#async.wait.ms:0 in REST mode wait sync result with log out
+--#async.wait.ms:3000 in REST mode wait 3sec result with log out
+--#async.wait.ms:-1 on REST wait sync object from method - to json
+
 --async.wait.ms:0
 
 fake=true
