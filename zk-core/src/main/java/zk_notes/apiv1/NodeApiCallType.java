@@ -270,11 +270,8 @@ public enum NodeApiCallType {
 			}
 			case NoteApi.EXE_REST: {
 
-				String jp = curPPI.queryUrl().getFirstAsStr("jp", null);
-				String xp = curPPI.queryUrl().getFirstAsStr("xp", null);
-
-				boolean withOuterJp = jp != null;
-				boolean withOuterXp = xp != null;
+				boolean withOuterJp = curPPI.queryUrl().getFirstAsStr("jp", null) != null;
+				boolean withOuterXp = curPPI.queryUrl().getFirstAsStr("xp", null) != null;
 
 				String rsp = HttpCallService.doHttpCall(trackId, nodeDir, withOuterJp, withOuterXp, true);
 				Supplier<String> msgIf400 = () -> "Except data for response of node '" + nodeDir.nodeName() + "'";
