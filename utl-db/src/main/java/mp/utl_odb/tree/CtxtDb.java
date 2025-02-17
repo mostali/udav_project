@@ -356,7 +356,7 @@ public class CtxtDb extends NamedDbUrl {
 	}
 
 	public CtxTimeModel add(String key, String value, String ext) {
-		updateExist(false);
+		_updateExist(false);
 		return put(CtxtlDb.Key.of(key), CtxtlDb.Key.Val.of(ToString.strOr(value, null)), CtxtlDb.Key.Ext.of(ToString.strOr(ext, null)), null);
 	}
 
