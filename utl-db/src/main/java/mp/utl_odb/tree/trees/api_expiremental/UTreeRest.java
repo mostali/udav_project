@@ -51,7 +51,7 @@ public class UTreeRest {
 			case "add":
 			case "set":
 			case "put":
-				UCRest.notEmpty400(val, "set arg value");
+//				UCRest.notEmpty400(val, "set arg value");
 				break;
 
 			default:
