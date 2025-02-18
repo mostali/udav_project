@@ -19,7 +19,7 @@ public interface IErrorsCollector {
 	}
 
 	default IErrorsCollector throwIsErr() {
-		return isValid() ? this : X.throwException(getMultiError());
+		return isValid() ? this : X.throwException(getMultiErrorOrNull());
 	}
 
 	default boolean isValid() {
