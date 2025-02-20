@@ -61,7 +61,7 @@ public class SpringQrtzScheduler {
 
 		Properties properties = new Properties();
 
-		properties.setProperty("org.quartz.scheduler.instanceName", "MyInstanceName");
+		properties.setProperty("org.quartz.scheduler.instanceName", "ZNJob");
 		properties.setProperty("org.quartz.scheduler.instanceId", "Instance1");
 //		properties.setProperty("org.quartz.scheduler.interruptJobsOnShutdownWithWait", "true");
 
