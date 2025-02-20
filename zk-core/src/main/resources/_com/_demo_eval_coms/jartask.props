@@ -7,9 +7,10 @@ jartask:nsi.ftpcleaner.FtpCleanerMod#invokeContext0
 --#async.wait.ms:3000 in REST mode wait 3sec result with log out
 --#async.wait.ms:-1 on REST wait sync object from method - to json
 
+#fake=true
+#fakee=false
+
 --async.wait.ms:0
 
-fake=true
-fakee=false
 
 
