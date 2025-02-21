@@ -100,14 +100,14 @@ public class NodeID implements IErrorsCollector {
 	public ItemPath toItemPath() {
 		switch (state) {
 			case FULL:
-				return ItemPath.of(toSdn(), item());
+				return ItemPath.of(sdn(), item());
 			default:
 				throw new WhatIsTypeException("Illegal state for prepare ItemPath:" + state);
 		}
 	}
 
 	public NodeID newNodeID(String itemName) {
-		return (NodeID) new NodeID(itemName, toSdn()).throwIsErr();
+		return (NodeID) new NodeID(itemName, sdn()).throwIsErr();
 	}
 
 	public enum State {
