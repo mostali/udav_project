@@ -1,0 +1,5 @@
+KPUT http://localhost:9092
+--#header comment
+--topic:topicName
+--key:msgkey
+msgvalue
