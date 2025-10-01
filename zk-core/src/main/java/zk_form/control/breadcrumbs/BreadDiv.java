@@ -1,0 +1,114 @@
+package zk_form.control.breadcrumbs;
+
+import mpc.exception.WhatIsTypeException;
+import mpc.str.sym.SYMJ;
+import mpu.core.ARR;
+import mpu.pare.Pare;
+import zk_com.base_ctr.Div0;
+import zk_com.base_ctr.Menupopup0;
+import zk_notes.events.ANMD;
+import zk_notes.events.ANMP;
+import zk_os.core.Sdn;
+import zk_os.sec.SecMan;
+import zk_page.ZKC;
+import zk_page.events.ECtrl;
+import zk_page.index.PageDdChoicer;
+import zk_page.index.RSPath;
+import zk_page.index.PlaneDdChoicer;
+
+public class BreadDiv extends Div0 {
+
+	static Double[] TOP_LEFT = ARR.of(9.0, 13.0);
+
+	public BreadDiv(Pare sdn) {
+		super();
+
+		Sdn sdn0 = Sdn.of(sdn);
+		RSPath pathType = sdn0.getPathType();
+
+		BreadLn rootLn = null, planeLn = null, pageLn = null;
+
+		switch (pathType) {
+
+			case PAGE:
+
+//				pageLn = new BreadLn(SYMJ.ARROW_REPEAT_TRIANGLE_BW + " " + sdn0.page(), e -> RSPath.redirectToPage(sdn0));
+				pageLn = new BreadLn(SYMJ.FILE_HTML + " " + sdn0.page());
+				pageLn.onCLICK(e -> {
+					if (ECtrl.of(e) == ECtrl.CTRL) {
+						PageDdChoicer child = new PageDdChoicer(sdn0.plane()) {
+
+							@Override
+							public void onChoicePage(String pagename) {
+								RSPath.toPage_Redirect(sdn0.plane(), pagename);
+							}
+						};
+						child.openDefaultModalWindow("Choice page..");
+					} else {
+						sdn0.redirectTo();
+					}
+				});
+//				pageLn = new BreadLn(SYMJ.ARROW_RIGHT_SPEC + " " + sdn0.page(), e -> RSPath.redirectToPage(sdn0));
+
+				if (SecMan.isPlaneOwnerOrAdmin(sdn0.plane())) {
+					Menupopup0 pageMenu = pageLn.getOrCreateMenupopup(ZKC.getFirstWindow());
+					ANMP.applyPageLink(pageMenu, sdn0);
+				}
+
+
+			case PLANE: {
+
+
+				if (!sdn0.isEmptyPlane()) { //not show with index plane
+
+					planeLn = new BreadLn(sdn0.plane());
+
+					planeLn.onCLICK(e -> {
+						if (ECtrl.of(e) == ECtrl.CTRL) {
+							PlaneDdChoicer child = new PlaneDdChoicer() {
+								@Override
+								public void onChoiceSd3(String sd3) {
+									RSPath.toPlane_Redirect(sd3);
+								}
+							};
+							child.openDefaultModalWindow("Choice plane..");
+						} else {
+							sdn0.toSdnPlaneIndex().redirectTo();
+						}
+					});
+
+					if (SecMan.isPlaneOwnerOrAdmin(sdn0.plane())) {
+						Menupopup0 planeMenu = planeLn.getOrCreateMenupopup(ZKC.getFirstWindow());
+						ANMD.applyPlaneLink(planeMenu, sdn0.plane());
+					}
+				}
+
+
+			}
+
+			case ROOT:
+//				rootLn = new BreadLn(SYMJ.HOME, e -> RSPath.redirectToPage(Sdn.ofRootPlane()));
+				rootLn = new BreadLn(SYMJ.GLOB_GRID, e -> Sdn.ofRootPlane().redirectTo());
+				break;
+
+
+			default:
+				throw new WhatIsTypeException(pathType);
+		}
+
+		appendChild(rootLn);
+
+		if (planeLn != null) {
+			appendChild(planeLn);
+		}
+
+		if (pageLn != null) {
+			appendChild(pageLn);
+		}
+
+		fixed();
+
+		top_left(TOP_LEFT[0], TOP_LEFT[1]);
+	}
+
+}
