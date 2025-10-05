@@ -1,0 +1,16 @@
+<!--        https://zkfiddle.org/sample/21adt6i/1-mousedown-event-on-div-->
+
+<zk
+        xmlns="http://www.zkoss.org/2005/zul"
+        xmlns:h="http://www.w3.org/1999/xhtml"
+>
+    <window border="normal" title="hello">
+        <h:div id="area" style="width: 200px; height: 200px; background-color: lightgray"></h:div>
+    </window>
+
+    <script type="text/javascript" defer="true">
+        $('#area').bind( 'mousedown',function() {
+        alert('down !');
+        });
+    </script>
+</zk>
