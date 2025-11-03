@@ -1,0 +1,8 @@
+<!-- <h2 class="head">EXECUTE GROOVY</h2> -->
+
+<pre>
+//groovy
+return "echo Hello Groovy".execute().text
+</pre>
+
+

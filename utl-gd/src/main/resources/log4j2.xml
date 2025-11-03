@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+	<Appenders>
+		<Console name="STDOUT" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d{HH:mm:ss} %-5p %c.%M(%F:%L) -> %m%n"/>
+		</Console>
+		<Console name="STDOUT_ERRORS" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d{HH:mm:ss} %-5p ooooooooo %c.%M(%F:%L) %m%n"/>
+		</Console>
+	</Appenders>
+	<Loggers>
+		<Logger name="mp.tslice" level="trace">
+			<AppenderRef ref="STDOUT"/>
+		</Logger>
+		<Root level="trace">
+		</Root>
+	</Loggers>
+</Configuration>
