@@ -1,0 +1,6 @@
+private @Getter {{TYPE}} {{NAME}};
+
+public Object {{NAME}}({{TYPE}}... {{NAME}}) {
+    this.{{NAME}} = ARG.toDefOr(this.{{NAME}}, {{NAME}});
+    return this;
+}
