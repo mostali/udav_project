@@ -1,0 +1,5 @@
+<zk>
+<!--	<?meta name="keywords" content="HTML, CSS, XML" ?>-->
+	<window viewModel="@id('vm') @init('zk_page.core.SpVM')">
+	</window>
+</zk>

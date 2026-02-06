@@ -1,0 +1,9 @@
+<!-- <h2 class="head">EXECUTE SQL</h2> -->
+
+<pre>
+jdbc:postgresql://localhost:5432/schema_name?currentSchema=cur_schema&searchpath=cur_schema
+--login:login
+--password:password
+SELECT * FROM pg_catalog.pg_tables
+</pre>
+

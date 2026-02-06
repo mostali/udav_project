@@ -1,0 +1,15 @@
+<!--https://zkfiddle.org/sample/s4c1s2/4-Carousel-fiddle-->
+<?script rel="javascript" type="text/javascript" href="https://cdnjs.cloudflare.com/ajax/libs/bxslider/4.2.15/jquery.bxslider.min.js"?>
+<?link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bxslider/4.2.15/jquery.bxslider.min.css"?>
+<zk xmlns:w="http://www.zkoss.org/2005/zk/client">
+    <window border="normal" title="Carousel example" width="600px" height="400px">
+        <div id="slider" sclass="myslider" width="600px" height="300px"
+             w:onBind="this.bxSlider = jq(this).bxSlider();"
+             w:reloadSlider="function() { this.bxSlider.reloadSlider();}">
+            <div sclass="slide"><image src="https://picsum.photos/id/237/600/300" /></div>
+            <div sclass="slide"><image src="https://picsum.photos/id/238/600/300" /></div>
+            <div sclass="slide"><image src="https://picsum.photos/id/239/600/300" /></div>
+            <div sclass="slide"><image src="https://picsum.photos/id/240/600/300" /></div>
+        </div>
+    </window>
+</zk>

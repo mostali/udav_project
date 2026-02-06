@@ -1,0 +1,5 @@
+<zk xmlns:n="http://www.zkoss.org/2005/zk/native">
+    <n:form>
+        <ckeditor filebrowserImageBrowseUrl="img" filebrowserImageUploadUrl="img" />
+    </n:form>
+</zk>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zk>
+    <div apply="org.zkoss.bind.BindComposer"
+         viewModel="@id('vm') @init('zk_com.uploader.stuff.FileUploadViewModel_V3')">
+
+        <vlayout spacing="15px"
+                 style="width: 500px; margin: 30px auto; padding: 25px;
+                        border: 2px dashed #4a90e2; border-radius: 10px;
+                        background-color: #fafafa; text-align: center;">
+
+            <label value="Перетащите файлы сюда или нажмите кнопку"
+                   style="font-size: 16px; color: #555;" />
+
+            <!-- Drop zone: droppable="true" + onUpload -->
+            <div droppable="true"
+                 onUpload="@command('onFilesUploaded', medias=event.medias)"
+                 style="min-height: 120px; display: flex; align-items: center;
+                        justify-content: center; background: #f0f8ff;
+                        border-radius: 8px; cursor: pointer;"
+                 onClick="fileBtn.click()">
+                <span class="z-icon-cloud-upload"
+                      style="font-size: 40px; color: #4a90e2; margin-right: 10px;"></span>
+                <span>📁 Перетащите файлы или кликните</span>
+            </div>
+
+            <!-- Скрытая кнопка для выбора файлов -->
+            <fileupload id="fileBtn"
+                        visible="false"
+                        multiple="true"
+                        onUpload="@command('onFilesUploaded', medias=event.medias)" />
+
+            <!-- Список загруженных файлов -->
+            <vlayout id="uploadList" spacing="8px" />
+        </vlayout>
+    </div>
+</zk>

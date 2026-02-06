@@ -1,0 +1,17 @@
+<zk>
+    <style>
+        .focussablePasteArea {
+        background-color: pink;
+        }
+        .focussablePasteArea:focus {
+        outline: 2px auto black;
+        }
+    </style>
+    <window closable="true" border="normal" apply="zk_com.uploader.ClipboardLoaderComposer">
+<!--        <button id="cmd" label="cmd" onClick="@command('closeUploader')" />-->
+        <!--script src="js/clipboard-loader.js"/-->
+        <!--<script src="~./js/clipboard-loader.js" type="text/css"/>-->
+        <!--	  	<script src="~./js/clp1.js"/>-->
+        <!-- <n:canvas width="400px" height="300px" id="mycanvas"></n:canvas> -->
+    </window>
+</zk>

@@ -1,0 +1,7 @@
+<zk>
+    <window apply="zk_com.win.CWindowComposer">
+<!--        <caption label="caption"/>-->
+        <textbox style="opacity:0;position:absolute;margin-left:-10000px;">
+        </textbox>
+    </window>
+</zk>

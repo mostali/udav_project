@@ -1,0 +1,45 @@
+sendmsg:
+
+-- ------------------------ TG -----------------------
+--toTg:0123456789
+--parse:HTML
+--#msg:Hello world
+-- ------------------------MAIL-----------------------
+--mail.smtp.auth:true
+--mail.smtp.starttls.enable:false
+--#mail.smtp.host:%{{mail.host}}
+--mail.smtp.port:587
+
+--login:%{{mail.user.login}}
+--password:%{{mail.user.pass}}
+
+--fromEmail:user@domain.ru
+--toEmails:user@domain.ru
+--subject:my-subject
+--#msg:mymsg
+--#file:/file.zip
+--#dir:/taskDir
+--#zip:true
+-- ------------------------ BODY ---------------------
+HTML
+<b>Hello world</b>
+<i>Hello world</i>
+<u>Hello world</u>
+<s>Hello world</s>
+
+<code>
+code(){
+}
+</code>
+
+MARKDOWN
+MARKDOWN2
+<pre>
+**сам ты жирный**
+__курсив__
+`код`
+~~перечеркнутый~~
+```блок кода```
+||скрытый текст||
+(ссылка)[https://q.com]
+</pre>

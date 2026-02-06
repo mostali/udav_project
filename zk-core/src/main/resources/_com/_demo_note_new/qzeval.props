@@ -1,0 +1,16 @@
+qzeval:zk_notes.node_srv.NodeEvalJob:nodeId
+
+#https://www.freeformatter.com/cron-expression-generator-quartz.html
+#0 0 6 * * ?                    //Every day at 6am
+#0 */5 * ? * *                  //Every 5 minutes
+#0 15,30,45 * ? * *	     //Every hour at minutes 15, 30 and 45
+
+#cron=0 0 6 * * ?
+
+#context for node eval, use prefix $$
+#$$key=value
+
+start=2025-01-01 12:00:00
+end=2026-01-01 12:00:00
+every=30m
+

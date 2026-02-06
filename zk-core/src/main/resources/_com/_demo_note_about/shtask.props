@@ -1,0 +1,13 @@
+<!-- <h2 class="head">EXECUTE BASH</h2> -->
+
+<pre>
+#!/bin/bash
+#use file or body data for execute sh script
+##fileSh=shell.sh
+##Set 0 and wait always - async process out
+##Set -1 - sync mode - wait response
+##async.wait.ms=0
+echo "Hello Shell from user $USER"
+</pre>
+
+

@@ -1,0 +1,117 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>utl-gd</artifactId>
+	<version>${mp.version}</version>
+
+	<parent>
+		<groupId>dav</groupId>
+		<artifactId>mp</artifactId>
+		<version>SNAPSHOT</version>
+		<relativePath>../mp/pom.xml</relativePath>
+	</parent>
+
+	<build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>8</source>
+					<target>8</target>
+				</configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- 		<gdocs.mc>gd</gdocs.mc> -->
+	</properties>
+
+	<dependencies>
+		<!-- ================STANDART MODULES===================== -->
+		<dependency>
+			<groupId>dav</groupId>
+			<artifactId>utl</artifactId>
+			<version>SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>dav</groupId>
+			<artifactId>net</artifactId>
+			<version>SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<!-- ================^^^^^^^^^^^^^^^^===================== -->
+
+
+		<!-- ================Google Docs===================== -->
+		<dependency>
+			<groupId>com.google.apis</groupId>
+			<artifactId>google-api-services-oauth2</artifactId>
+			<version>v2-rev75-1.19.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.api-client</groupId>
+			<artifactId>google-api-client</artifactId>
+			<version>1.22.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.oauth-client</groupId>
+			<artifactId>google-oauth-client-jetty</artifactId>
+			<version>1.22.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.apis</groupId>
+			<artifactId>google-api-services-sheets</artifactId>
+			<version>v4-rev459-1.22.0</version>
+		</dependency>
+
+		<!-- ==================Google Speech ================ -->
+
+<!--		<dependency>-->
+<!--			<groupId>com.google.cloud</groupId>-->
+<!--			<artifactId>google-cloud-speech</artifactId>-->
+<!--			<version>2.1.0</version>-->
+<!--		</dependency>-->
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-speech</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>com.google.api</groupId>-->
+<!--			<artifactId>google-api-java-client</artifactId>-->
+<!--			<version>1.32.1</version>-->
+<!--		</dependency>-->
+<!--		<dependency>-->
+<!--			<groupId>com.google.oauth-client</groupId>-->
+<!--			<artifactId>google-oauth-client-jetty</artifactId>-->
+<!--			<version>1.32.1</version>-->
+<!--		</dependency>-->
+		<dependency>
+			<groupId>com.google.apis</groupId>
+			<artifactId>google-api-services-speech</artifactId>
+			<version>v1-rev20240926-2.0.0</version>
+		</dependency>
+
+<!--		<dependency>-->
+<!--			<groupId>com.google.cloud</groupId>-->
+<!--			<artifactId>google-cloud-translate</artifactId>-->
+<!--			<version>1.93.0</version>-->
+<!--&lt;!&ndash;			2.1.8&ndash;&gt;-->
+<!--		</dependency>-->
+
+<!--		<dependency>-->
+<!--			<groupId>com.google.cloud</groupId>-->
+<!--			<artifactId>google-cloud-storage</artifactId>-->
+<!--			<version>2.2.2</version>-->
+<!--		</dependency>-->
+
+	</dependencies>
+
+</project>

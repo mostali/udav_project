@@ -1,0 +1,4 @@
+<zk>
+    <image width="300px"/>
+    <custom-attributes org.zkoss.zul.image.preload="true"/>
+</zk>

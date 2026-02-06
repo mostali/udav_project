@@ -1,0 +1,11 @@
+jartask:ftpcleaner.FtpCleanerMod#invokeContext0
+--dir:/opt/appVol/.bin
+--jar.filename:ftpcleaner-mod-v1.jar
+--#async.wait.ms:-1 is sync wait result (default value)
+--#async.wait.ms:1000 is async mode , wait 1s thread respone
+--#выключаем асинхронность - ждем ответа
+--async.wait.ms:0
+
+fake=true
+
+

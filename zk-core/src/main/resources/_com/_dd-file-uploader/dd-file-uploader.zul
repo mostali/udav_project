@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zk>
+<script type="text/javascript">
+<![CDATA[
+    zk.afterMount(function() {
+        var dropArea = jq('$dropArea')[0];
+        if (!dropArea) return;
+
+        // Предотвращаем стандартное поведение браузера
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        // Подсветка при наведении
+        function highlight() { dropArea.style.background = 'linear-gradient(135deg, silver, white)'; }
+        function unhighlight() { dropArea.style.background = 'linear-gradient(135deg, #7ac8ff, white)'; }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        // Обработка drop
+        dropArea.addEventListener('drop', function(e) {
+            preventDefaults(e);
+            var dt = e.dataTransfer;
+            var files = dt.files;
+
+            if (files.length > 0) {
+                // Имитируем загрузку через скрытый input
+                var input = jq('$fileUpload input')[0];
+                if (input) {
+                    input.files = files;
+                    var event = new Event('change', { bubbles: true });
+                    input.dispatchEvent(event);
+                }
+            }
+        });
+    });
+]]>
+</script>
+    <div style="background-color:white;position:absolute;left:35%;top:30%;z-index:10000;" apply="org.zkoss.bind.BindComposer" viewModel="@id('vm') @init('zk_com.uploader.DDFileUploader')">
+        <vlayout spacing="10px" style="width: 400px; margin: 20px auto; padding: 20px; border: 2px dashed #ccc; border-radius: 8px;" >
+
+            <hlayout hflex="1" style="text-align: right;">
+                <a style="text-decoration: underline; cursor: pointer;" onClick="self.parent.parent.detach()">Close ✗</a>
+            </hlayout>
+
+            <hlayout hflex="1" >
+                <checkbox style="display:inline" id="cbIsReplaceIfExists" />
+                <label value="Replace if exists"/>
+            </hlayout>
+
+            <textbox id="znitem" placeholder="item name"/>
+
+            <!-- Drop area -->
+            <div id="dropArea"
+                 style="background: linear-gradient(135deg, #7ac8ff, white);box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding:100px; min-height: 100px; display: flex; align-items: center; justify-content: center; "
+                 droppable="true"
+                 onDrop="@command('onFileDropped', event=event)">
+                <label value="📁 Перетащите сюда файл 👇" />
+            </div>
+
+            <!-- Hidden file input -->
+            <fileupload id="fileUpload"
+                        visible="false"
+                        onUpload="@command('onFileUploaded', media=event.media)" />
+
+            <!-- Upload button
+            <button label="Выбрать файл..."
+                    onClick="fileUpload.click()"
+                    style="margin-top: 10px;" />-->
+
+            <!-- Uploaded files list -->
+            <vlayout id="fileList" spacing="5px" />
+        </vlayout>
+    </div>
+</zk>

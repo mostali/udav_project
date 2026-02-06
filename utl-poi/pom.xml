@@ -1,0 +1,65 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>utl-poi</artifactId>
+    <version>${mp.version}</version>
+
+    <parent>
+        <groupId>dav</groupId>
+        <artifactId>mp</artifactId>
+        <version>SNAPSHOT</version>
+        <relativePath>../mp/pom.xml</relativePath>
+    </parent>
+
+    <properties>
+
+        <poi.version>5.0.0</poi.version>
+        <!--		<poi.version>4.1.1</poi.version>-->
+        <!--		<poi.version>3.17</poi.version>-->
+    </properties>
+
+
+    <dependencies>
+
+        <dependency>
+            <groupId>dav</groupId>
+            <artifactId>utl</artifactId>
+            <version>SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>${poi.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-scratchpad</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.zwobble.mammoth</groupId>
+            <artifactId>mammoth</artifactId>
+            <version>1.5.0</version>
+        </dependency>
+        <!--    https://github.com/vsch/flexmark-java    md -->
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-all</artifactId>
+<!--            0.64 < java11-->
+            <version>0.61.0</version>
+        </dependency>
+    </dependencies>
+</project>
