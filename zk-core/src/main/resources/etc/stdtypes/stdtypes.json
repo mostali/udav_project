@@ -1,0 +1,194 @@
+{
+  "NODE": {
+    "stdtype": "NODE",
+    "class": "mpe.cmsg.core.CallMsg",
+    "line0": "jdbc:",
+    "props": {
+      "stdclass": "mpe.cmsg.core.CallMsg",
+      "srvclass": "",
+      "shortName": "",
+      "shortNameRu": "ТЕКСТОВЫЕ ДАННЫЕ",
+      "actionTitle": "NOTE",
+      "icon": "🗞"
+    }
+  },
+  "SQL": {
+    "stdtype": "SQL",
+    "class": "mpe.cmsg.std.SqlCallMsg",
+    "line0": "jdbc:",
+    "props": {
+      "stdclass": "mpe.cmsg.std.SqlCallMsg",
+      "srvclass": "",
+      "shortName": "",
+      "shortNameRu": "SQL ЗАПРОС",
+      "actionTitle": "Send SQL call",
+      "icon": "🎯"
+    }
+  },
+  "SHTASK": {
+    "stdtype": "SHTASK",
+    "class": "mpe.cmsg.std.BashCallMsg",
+    "line0": "#!/bin/bash",
+    "props": {
+      "stdclass": "mpe.cmsg.std.BashCallMsg",
+      "srvclass": "",
+      "shortName": "shell",
+      "shortNameRu": "BASH СКРИПТ",
+      "actionTitle": "Execute Shell Script",
+      "icon": "▶️"
+    }
+  },
+
+  "PYTHON": {
+    "stdtype": "PYTHON",
+    "class": "mpe.cmsg.std.PyCallMsg",
+    "line0": "#python",
+    "props": {
+      "stdclass": "mpe.cmsg.std.PyCallMsg",
+      "srvclass": "",
+      "shortName": "",
+      "shortNameRu": "PYTHON СКРИПТ",
+      "actionTitle": "Execute Python script",
+      "icon": "▶️"
+    }
+  },
+
+  "GROOVY": {
+    "stdtype": "GROOVY",
+    "class": "mpe.cmsg.std.GroovyCallMsg",
+    "line0": "//groovy",
+    "props": {
+      "stdclass": "mpe.cmsg.std.GroovyCallMsg",
+      "srvclass": "",
+      "shortName": "Groovy Script",
+      "shortNameRu": "GROOVY СКРИПТ",
+      "actionTitle": "Execute Groovy Script",
+      "icon": "▶️"
+    }
+  },
+
+  "MVEL": {
+    "stdtype": "MVEL",
+    "class": "mpe.cmsg.std.MvelCallMsg",
+    "line0": "",
+    "props": {
+      "stdclass": "mpe.cmsg.std.MvelCallMsg",
+      "srvclass": "",
+      "shortName": "",
+      "shortNameRu": "MVEL JAVA СКРИПТ",
+      "actionTitle": "Execute Java script",
+      "icon": "▶️"
+    }
+  },
+
+  "JARTASK": {
+    "stdtype": "JARTASK",
+    "class": "mpe.cmsg.std.JarCallMsg",
+    "line0": "jartask:",
+    "props": {
+      "stdclass": "mpe.cmsg.std.JarCallMsg",
+      "srvclass": "",
+      "shortName": "JarTask",
+      "shortNameRu": "Вызов Jar",
+      "actionTitle": "Execute Jar Task",
+      "icon": "♨️"
+    }
+  },
+
+  "HTTP": {
+    "stdtype": "HTTP",
+    "class": "mpe.cmsg.std.HttpCallMsg",
+    "sub0": "mpc.net.CON$Method",
+    "props": {
+      "stdclass": "mpe.cmsg.std.HttpCallMsg",
+      "srvclass": "",
+      "shortName": "",
+      "shortNameRu": "HTTP ЗАПРОС",
+      "actionTitle": "Send HTTP call",
+      "icon": "✈️️"
+    }
+  },
+
+  "KAFKA": {
+    "stdtype": "KAFKA",
+    "class": "mpe.cmsg.std.KafkaCallMsg",
+    "sub0": "mpe.cmsg.std.KafkaCallMsg$KafkaMethodType",
+    "props": {
+      "stdclass": "mpe.cmsg.std.KafkaCallMsg",
+      "srvclass": "",
+      "shortName": "",
+      "shortNameRu": "KAFKA PRODUCER/CONSUMER",
+      "actionTitle": "Send KAFKA call",
+      "icon": "🚀"
+    }
+  },
+
+  "SENDMSG": {
+    "stdtype": "SENDMSG",
+    "class": "mpe.cmsg.std.SendCallMsg",
+    "line0": "sendmsg:",
+    "props": {
+      "stdclass": "mpe.cmsg.std.SendCallMsg",
+      "srvclass": "",
+      "shortName": "",
+      "shortNameRu": "ОТПРАВКА СООБЩЕНИЯ",
+      "actionTitle": "Send message",
+      "icon": "✉"
+    }
+  },
+
+  "QZEVAL": {
+    "stdtype": "QZEVAL",
+    "class": "mpe.cmsg.std.QzCallMsg",
+    "line0": "qzeval:",
+    "props": {
+      "stdclass": "mpe.cmsg.std.QzCallMsg",
+      "srvclass": "",
+      "shortName": "",
+      "shortNameRu": "ТАЙМЕР/CRON",
+      "actionTitle": "Run QUARTZ all task's",
+      "icon": "⏰"
+    }
+  },
+  "IIPROMT": {
+    "stdtype": "IIPROMT",
+    "class": "mpe.cmsg.std.IICallMsg",
+    "line0": "iipromt:",
+    "props": {
+      "stdclass": "mpe.cmsg.std.IICallMsg",
+      "srvclass": "",
+      "shortName": "",
+      "shortNameRu": "ИИ ПРОМТ",
+      "actionTitle": "II Prompt",
+      "icon": "👁"
+    }
+  },
+
+
+  "JQL": {
+    "stdtype": "JQL",
+    "class": "mpe.cmsg.std.JqlCallMsg",
+    "line0": "jql:",
+    "props": {
+      "stdclass": "mpe.cmsg.std.JqlCallMsg",
+      "srvclass": "zk_notes.node_srv.types.jqlMsg.JqlZSrv",
+      "shortName": "jql",
+      "shortNameRu": "JIRA ЗАДАЧА",
+      "actionTitle": "Execute Jira Task",
+      "icon": "🔮"
+    }
+  },
+  "PUBL": {
+    "stdtype": "PUBL",
+    "class": "mpe.cmsg.std.PublCallMsg",
+    "line0": "publ:",
+    "props": {
+      "stdclass": "mpe.cmsg.std.PublCallMsg",
+      "srvclass": "zkbea_apps.publ_app_srv.PublZSrv",
+      "shortName": "publ",
+      "shortNameRu": "ПУБЛИКАЦИЯ",
+      "actionTitle": "Execute Jira Task",
+      "icon": "🧩"
+    }
+  }
+}

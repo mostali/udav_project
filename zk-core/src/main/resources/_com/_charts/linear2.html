@@ -1,0 +1,44 @@
+<!--div>
+    https://github.com/chartjs/Chart.js/blob/master/docs/general/data-structures.md
+    https://www.chartjs.org/docs/latest/samples/line/line.html
+</div-->
+<!--script src="https://cdn.jsdelivr.net/npm/chart.js"></script-->
+<!--<div></div>-->
+<canvas id="@{{id}}"></canvas>
+
+<script>
+
+    var labels=@{{labels}};
+
+    var label=@{{label}};
+    var data=@{{data}};
+
+    var label2=@{{label2}};
+    var data2=@{{data2}};
+
+    var data = {
+      labels: labels,
+      datasets: [{
+        label: label,
+        data: data,
+        borderWidth: 1
+      },{
+        label: label2,
+        data: data2,
+        borderWidth: 1
+      }]
+    };
+
+     var ctx=null;
+    //if(typeof ctx === 'undefined'){
+     ctx = document.getElementById('@{{id}}');
+    //}
+      new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true
+        }
+    });
+
+</script>
