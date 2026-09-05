@@ -1,0 +1,55 @@
+<zk>
+    <window title="Drag and Drop File Upload" border="normal" width="400px">
+        <vlayout>
+            <label value="Перетащите файл сюда для загрузки:" />
+            <div id="dropArea" style="border: 2px dashed #ccc; height: 200px; display: flex; align-items: center; justify-content: center;">
+                <label value="Перетащите файл сюда" />
+            </div>
+            <label id="statusLabel" />
+        </vlayout>
+
+        <zscript>
+            import org.zkoss.zk.ui.util.Clients;
+            import org.zkoss.zul.Fileupload;
+
+            Clients.evalJavaScript("initDropArea();");
+        </zscript>
+    </window>
+
+    <script><![CDATA[
+        function initDropArea() {
+             dropArea = zk.Widget.$('$dropArea');
+
+        p("init-initDropArea:"+dropArea);
+
+            dropArea.onclick=function(event) { p("cliiiick");};
+
+            dropArea.ondrop = function(event) {
+                    p("event-drop");
+                event.preventDefault();
+                var files = event.dataTransfer.files;
+                if (files.length > 0) {
+                    uploadFile(files[0]);
+                }
+            };
+            dropArea.ondragover = function(event) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'copy';
+            };
+        }
+
+        function uploadFile(file) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/your/upload/endpoint', true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    zk.Widget.$('$statusLabel').setValue('Файл "' + file.name + '" успешно загружен!');
+                } else {
+                    zk.Widget.$('$statusLabel').setValue('Ошибка при загрузке файла.');
+                }
+            };
+            xhr.send(file);
+        }
+    ]]></script>
+</zk>

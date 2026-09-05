@@ -1,0 +1,20 @@
+
+
+<h3 class="ulHead">Простейший случай (<i>jar лежит внутрри заметки</i>)</h3>
+<pre>
+jartask:ftpcleaner.FtpCleanerMod#invokeLines
+</pre>
+
+<h3 class="ulHead">Внешний файл Jar</h3>
+<pre>
+jartask:ftpcleaner.FtpCleanerMod#invokeLines
+--dir:~/.data/.bin
+--jar.filename:ftpcleaner-mod-v1.jar
+</pre>
+
+<h3 class="ulHead">Асинхронное выполнение</h3>
+<pre>
+jartask:ftpcleaner.FtpCleanerMod#invokeLines
+--async.wait.ms:3000
+</pre>
+

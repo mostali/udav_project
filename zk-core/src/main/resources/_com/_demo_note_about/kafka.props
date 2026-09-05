@@ -1,0 +1,21 @@
+<!-- <h2 class="head">KAFKA</h2> -->
+
+<ul class="ulBody">
+    <li>Producer / Consumer<li>
+</ul>
+
+<pre>
+KGET http://domain.com:9092
+--#comment
+--topic:topicName
+--key:myKey
+</pre>
+
+<pre>
+KPUT http://domain.com:9092
+--#comment
+--topic:topicName
+--key:myKey
+myValue
+</pre>
+

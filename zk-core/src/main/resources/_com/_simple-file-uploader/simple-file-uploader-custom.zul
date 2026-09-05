@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zk>
+
+ <div style="position:absolute;left:45%;top:45%;z-index:10000;padding:100px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); background: linear-gradient(135deg, lightgreen, white)" apply="org.zkoss.bind.BindComposer"
+         viewModel="@id('vm') @init('zk_com.uploader.NativeFileUploaderComposerCustom')">
+
+        <hlayout hflex="1" style="text-align: right;">
+            <a style="text-decoration: underline; cursor: pointer;" onClick="self.parent.parent.detach()">Close ✗</a>
+        </hlayout>
+
+        <vlayout spacing="15px" style="padding: 20px; max-width: 500px;">
+            <label value="Выберите файл для загрузки:" />
+
+            <fileupload label="Загрузить файл" onUpload="@command('upload', media=event.media)" />
+
+            <label value="@load(vm.message)" style="@load(vm.messageStyle)" />
+        </vlayout>
+    </div>
+
+
+    <!-- Простая кнопка загрузки файлов
+        <a iconSclass="z-icon-upload" apply="zk_com.uploader.NativeFileUploaderComposer"/>
+
+    <a upload="true"  apply="zk_com.uploader.NativeFileUploaderComposer"
+            onUpload="@command('handleFileUpload', media=event.media)"
+            iconSclass="z-icon-upload"
+            label="Выбрать файл"
+           />
+           -->
+</zk>
+

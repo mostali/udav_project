@@ -1,0 +1,539 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>dav</groupId>
+
+    <artifactId>mp</artifactId>
+
+    <name>mp</name>
+    <version>SNAPSHOT</version>
+
+    <packaging>pom</packaging>
+
+    <url>http://maven.apache.org</url>
+
+    <properties>
+
+        <!--		NATIVE     -->
+
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.formatDEP>yyyyMM_ddHHmm</maven.build.timestamp.formatDEP>
+
+
+        <maven-build-timestamp>${maven.build.timestamp}</maven-build-timestamp>
+        <maven-project-version>${project.version}</maven-project-version>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <mp.version>${mpp.version}</mp.version>
+        <jsoup.version>1.13.1</jsoup.version>
+
+        <logback.version>1.2.3</logback.version>
+
+        <gt.version>1.5.1</gt.version>
+
+
+        <!--  ZK APP -->
+
+        <zk.version>9.6.2</zk.version>
+        <!--        <zkspringboot.version>2.5.12</zkspringboot.version>-->
+        <zkspringboot.version>2.5.12-FL-2022041218</zkspringboot.version>
+        <springboot.version>2.5.12</springboot.version>
+        <spring-data.version>2.4.2</spring-data.version>
+        <!--        <zats.version>3.0.0</zats.version>-->
+        <junit.version>4.13.1</junit.version>
+
+        <javax-persistence.version>2.2</javax-persistence.version>
+
+        <sqlite-jdbc.version>3.39.3.0</sqlite-jdbc.version>
+
+        <lombok.version>1.18.22</lombok.version>
+        <org.mapstruct.version>1.5.3.Final</org.mapstruct.version>
+
+    </properties>
+
+    <!--		<modules>-->
+    <!--		</modules>-->
+
+    <profiles>
+        <profile>
+            <id>def_mpp_version</id>
+            <activation>
+                <property>
+                    <name>!mpp.version</name>
+                </property>
+            </activation>
+            <properties>
+                <mpp.version>SNAPSHOT</mpp.version>
+            </properties>
+        </profile>
+        <profile>
+            <modules>
+
+<!--                <module>../appc_bf/</module> &lt;!&ndash;Bot Framework - Фрйэмфорк для телеграм & вк ботов &ndash;&gt;-->
+
+                <module>../zznote</module>
+                <module>../zznotet</module>
+                <module>../utl-rest</module>
+                <module>../zk-core</module>
+
+                <module>../utl</module> <!-- Util Core -->
+
+                <module>../utl-db</module> <!-- DB Utilities -->
+
+                <module>../net</module> <!--  Work with Net, HttpClient, Parse Html + Jwt  -->
+
+                <module>../nett</module> <!--  Telegram Bot Official Api -->
+
+                <module>../api-kafka</module> <!--  Kafka Api -->
+
+                <!--  <module>../gdoocs</module>--> <!--  Google Docs Api Utils -->
+
+
+                <!-- <module>../utils-rt</module>--> <!-- Util Runtime -->
+
+                <!-- <module>../utl-arc</module>--> <!--  Zip Utils -->
+
+                <!--                <module>../utl-rest</module>-->
+
+                <!--                <module>../utl-poi</module>-->
+
+                <!--                <module>../utl-pdf</module>-->
+
+                <!--                <module>../utl-opencv</module>-->
+
+                <!--                <module>../utils-jod2</module>-->
+
+
+
+                <!--                <module>../jgit</module>-->
+                <!--                <module>../utl_docker</module>-->
+
+                <!--                <module>../nettm</module>-->
+
+                <!--                <module>../netv5</module>-->
+                <!--                <module>../netv5bs</module>-->
+
+                <!--                <module>../utl-gd</module>-->
+
+                <!--                <module>../selen2</module>-->
+                <!--                <module>../selen3</module>-->
+                <!--                <module>../selen4</module>-->
+
+                <!--                <module>../utl-jira</module>-->
+                <!--                <module>../confcli</module>-->
+
+            </modules>
+            <!--			<activation>-->
+            <!--				<activeByDefault>true</activeByDefault>-->
+            <!--			</activation>-->
+            <id>main</id>
+        </profile>
+
+        <profile>
+            <id>zznote</id>
+            <modules>
+                <module>../zznote</module>
+                <module>../zznotet</module>
+                <module>../utl</module>
+                <module>../utl-rest</module>
+                <module>../utl-db</module>
+                <module>../zk-core</module>
+                <module>../api-kafka</module>
+                <module>../nett</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>oom_mod</id>
+            <modules>
+                <module>../utl</module>
+            </modules>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <!-- 1.7.1 -->
+                        <version>2.3</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <!-- <minimizeJar>true</minimizeJar> -->
+                            <finalName>oomm</finalName>
+                            <!--maxMemory>1024m</maxMemory-->
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>shaded</shadedClassifierName>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>lifebeat.mod.OomMod</mainClass>
+                                </transformer>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <source>8</source>
+                            <target>8</target>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+<!--        <profile>-->
+<!--            <id>opencv_mod</id>-->
+<!--            <modules>-->
+<!--                <module>../utl</module>-->
+<!--                <module>../utl-opencv</module>-->
+<!--            </modules>-->
+<!--            <build>-->
+<!--                <plugins>-->
+<!--                    <plugin>-->
+<!--                        <groupId>org.apache.maven.plugins</groupId>-->
+<!--                        <artifactId>maven-shade-plugin</artifactId>-->
+<!--                        &lt;!&ndash; 1.7.1 &ndash;&gt;-->
+<!--                        <version>2.3</version>-->
+<!--                        <executions>-->
+<!--                            <execution>-->
+<!--                                <phase>package</phase>-->
+<!--                                <goals>-->
+<!--                                    <goal>shade</goal>-->
+<!--                                </goals>-->
+<!--                            </execution>-->
+<!--                        </executions>-->
+<!--                        <configuration>-->
+<!--                            &lt;!&ndash; <minimizeJar>true</minimizeJar> &ndash;&gt;-->
+<!--                            <finalName>ocvm</finalName>-->
+<!--                            &lt;!&ndash;maxMemory>1024m</maxMemory&ndash;&gt;-->
+<!--                            <shadedArtifactAttached>true</shadedArtifactAttached>-->
+<!--                            <shadedClassifierName>shaded</shadedClassifierName>-->
+<!--                            <transformers>-->
+<!--                                <transformer-->
+<!--                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
+<!--                                    <mainClass>utl_opencv.mod.OpenCvMod</mainClass>-->
+<!--                                </transformer>-->
+<!--                            </transformers>-->
+<!--                            <filters>-->
+<!--                                <filter>-->
+<!--                                    <artifact>*:*</artifact>-->
+<!--                                    <excludes>-->
+<!--                                        <exclude>META-INF/*.SF</exclude>-->
+<!--                                        <exclude>META-INF/*.DSA</exclude>-->
+<!--                                        <exclude>META-INF/*.RSA</exclude>-->
+<!--                                    </excludes>-->
+<!--                                </filter>-->
+<!--                            </filters>-->
+<!--                        </configuration>-->
+<!--                    </plugin>-->
+<!--                    <plugin>-->
+<!--                        <groupId>org.apache.maven.plugins</groupId>-->
+<!--                        <artifactId>maven-compiler-plugin</artifactId>-->
+<!--                        <configuration>-->
+<!--                            <source>8</source>-->
+<!--                            <target>8</target>-->
+<!--                        </configuration>-->
+<!--                    </plugin>-->
+<!--                </plugins>-->
+<!--            </build>-->
+<!--        </profile>-->
+
+<!--        <profile>-->
+<!--            <id>mod_sendmail</id>-->
+<!--            <modules>-->
+<!--                <module>../apps/mod_sendmail/</module>-->
+<!--                &lt;!&ndash;                <module>../net</module>&ndash;&gt;-->
+<!--                <module>../utl</module>-->
+<!--                &lt;!&ndash;                <module>../utl-arc</module>&ndash;&gt;-->
+<!--                &lt;!&ndash;                <module>../utl-db</module>&ndash;&gt;-->
+<!--            </modules>-->
+<!--            <build>-->
+<!--                <plugins>-->
+<!--                    <plugin>-->
+<!--                        <groupId>org.apache.maven.plugins</groupId>-->
+<!--                        <artifactId>maven-shade-plugin</artifactId>-->
+<!--                        &lt;!&ndash; 1.7.1 &ndash;&gt;-->
+<!--                        <version>2.3</version>-->
+<!--                        <executions>-->
+<!--                            <execution>-->
+<!--                                <phase>package</phase>-->
+<!--                                <goals>-->
+<!--                                    <goal>shade</goal>-->
+<!--                                </goals>-->
+<!--                            </execution>-->
+<!--                        </executions>-->
+<!--                        <configuration>-->
+<!--                            &lt;!&ndash; <minimizeJar>true</minimizeJar> &ndash;&gt;-->
+<!--                            <finalName>msm</finalName>-->
+<!--                            &lt;!&ndash;maxMemory>1024m</maxMemory&ndash;&gt;-->
+<!--                            <shadedArtifactAttached>true</shadedArtifactAttached>-->
+<!--                            <shadedClassifierName>shaded</shadedClassifierName>-->
+<!--                            <transformers>-->
+<!--                                <transformer-->
+<!--                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
+<!--                                    <mainClass>mod_sendmail.ModSendMail</mainClass>-->
+<!--                                </transformer>-->
+<!--                            </transformers>-->
+<!--                            <filters>-->
+<!--                                <filter>-->
+<!--                                    <artifact>*:*</artifact>-->
+<!--                                    <excludes>-->
+<!--                                        <exclude>META-INF/*.SF</exclude>-->
+<!--                                        <exclude>META-INF/*.DSA</exclude>-->
+<!--                                        <exclude>META-INF/*.RSA</exclude>-->
+<!--                                    </excludes>-->
+<!--                                </filter>-->
+<!--                            </filters>-->
+<!--                        </configuration>-->
+<!--                    </plugin>-->
+<!--                    <plugin>-->
+<!--                        <groupId>org.apache.maven.plugins</groupId>-->
+<!--                        <artifactId>maven-compiler-plugin</artifactId>-->
+<!--                        <configuration>-->
+<!--                            <source>8</source>-->
+<!--                            <target>8</target>-->
+<!--                        </configuration>-->
+<!--                    </plugin>-->
+<!--                </plugins>-->
+<!--            </build>-->
+<!--        </profile>-->
+
+        <profile>
+            <id>nett</id>
+            <modules>
+                <module>../utl</module>
+                <module>../utl-db</module>
+                <module>../net</module>
+                <module>../nett</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>nett-mod</id>
+            <modules>
+                <module>../utl</module>
+                <module>../utl-db</module>
+                <module>../nett</module>
+            </modules>
+        </profile>
+<!--        <profile>-->
+<!--            <id>neti</id>-->
+<!--            <modules>-->
+<!--                <module>../appc/</module>-->
+<!--                <module>../neti</module>-->
+<!--                <module>../net</module>-->
+<!--                <module>../utl</module>-->
+<!--                <module>../utl-db</module>-->
+<!--                <module>../utl-ssh</module>-->
+<!--            </modules>-->
+<!--        </profile>-->
+<!--        <profile>-->
+<!--            <id>selen-mod</id>-->
+<!--            <modules>-->
+<!--                <module>../utl</module>-->
+<!--                <module>../selen3</module>-->
+<!--            </modules>-->
+<!--        </profile>-->
+<!--        <profile>-->
+<!--            <id>utl-gdb-mod</id>-->
+<!--            <modules>-->
+<!--                <module>../utl-gd</module>-->
+<!--                <module>../utl</module>-->
+<!--                <module>../utl-gdb</module>-->
+<!--                <module>../utl-db</module>-->
+<!--                <module>../net</module>-->
+<!--            </modules>-->
+<!--        </profile>-->
+
+<!--        <profile>-->
+<!--            <id>app-urest</id>-->
+<!--            <modules>-->
+<!--                <module>../apps/app-urest</module>-->
+<!--                <module>../utl</module>-->
+<!--                &lt;!&ndash;				<module>../utils-rt</module>&ndash;&gt;-->
+<!--                &lt;!&ndash;				<module>../utl-db</module>&ndash;&gt;-->
+<!--                <module>../utl-rest</module>-->
+<!--                &lt;!&ndash;				<module>../utl-pdf</module>&ndash;&gt;-->
+<!--                <module>../net</module>-->
+<!--            </modules>-->
+<!--        </profile>-->
+
+    </profiles>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.22</version>
+<!--            <version>RELEASE</version>-->
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${org.mapstruct.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>16.0.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.9</version>
+        </dependency>
+
+        <!--        https://github.com/json-path/JsonPath-->
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <version>2.9.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.9</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.commons</groupId>-->
+<!--            <artifactId>commons-collections4</artifactId>-->
+<!--            <version>4.1</version>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <!--		<dependency>-->
+        <!--			<groupId>org.apache.logging.log4j</groupId>-->
+        <!--			<artifactId>log4j-to-slf4j</artifactId>-->
+        <!--			<version>2.11.1</version>-->
+        <!--		</dependency>-->
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.11.2</version>
+        </dependency>
+
+        <!--				<dependency>-->
+        <!--					<groupId>org.apache.logging.log4j</groupId>-->
+        <!--					<artifactId>log4j-slf4j-impl</artifactId>-->
+        <!--					<version>2.11.2</version>-->
+        <!--				</dependency>-->
+
+
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.10.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.classgraph</groupId>
+            <artifactId>classgraph</artifactId>
+            <version>4.8.83</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <resources>
+
+            <resource>
+                <filtering>false</filtering>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <filtering>false</filtering>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                    <excludes>
+                        <!-- <exclude>**/rux/jsch/DevUtils.java</exclude> -->
+                    </excludes>
+                </configuration>
+            </plugin>
+
+        </plugins>
+
+    </build>
+
+
+</project>

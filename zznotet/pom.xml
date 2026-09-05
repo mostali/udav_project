@@ -1,0 +1,65 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>zznotet</artifactId>
+    <version>${mp.version}</version>
+
+    <parent>
+        <groupId>dav</groupId>
+        <artifactId>mp</artifactId>
+        <version>SNAPSHOT</version>
+        <relativePath>../mp/pom.xml</relativePath>
+    </parent>
+
+    <properties>
+        <java.version>1.8</java.version>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>dav</groupId>
+            <artifactId>utl</artifactId>
+            <version>SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>dav</groupId>
+            <artifactId>utl-db</artifactId>
+            <version>SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
+		<dependency>
+			<groupId>dav</groupId>
+			<artifactId>utl-rest</artifactId>
+			<version>SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+
+        <dependency>
+            <groupId>dav</groupId>
+            <artifactId>net</artifactId>
+            <version>SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>dav</groupId>
+            <artifactId>nett</artifactId>
+            <version>SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
+		<dependency>
+			<groupId>dav</groupId>
+			<artifactId>zk-core</artifactId>
+			<version>SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+
+    </dependencies>
+</project>

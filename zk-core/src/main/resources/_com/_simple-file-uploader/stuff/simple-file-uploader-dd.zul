@@ -1,0 +1,45 @@
+<zk>
+    <style>
+        .z-dropupload{
+        height: 200px;
+        width: 200px;
+        border-radius: 0px;
+        padding: 10px;
+        background-color: #79e;
+        border: 1px solid #9e7;
+        text-align: center;
+        font-family: Arial;
+        }
+        .is-dragover{
+        background-color: #9e7;
+        border: 1px solid #79e;
+        }
+    </style>
+<!--    <script type="text/javascript"><![CDATA[-->
+<!--          // Not requiered: add a is-dragover class for easy CSS customization on hover-->
+<!--		initHoverClass = function(wgt){-->
+<!--			node=jq(wgt);-->
+<!--			node.on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {-->
+<!--				    e.preventDefault();-->
+<!--				    e.stopPropagation();-->
+<!--				  })-->
+<!--				  .on('dragover dragenter', function() {-->
+<!--					  node.addClass('is-dragover');-->
+<!--				  })-->
+<!--				  .on('dragleave dragend drop', function() {-->
+<!--					  node.removeClass('is-dragover');-->
+<!--				  })-->
+<!--		}-->
+<!--	]]></script>-->
+    <dropupload>This is a drop area, use it right now!</dropupload>
+
+    <!--    <div xmlns:w="client" apply="org.zkoss.bind.BindComposer"-->
+<!--         viewModel="@id('vm') @init('zk_core.com.upload.FileUploaderDdComposer')">-->
+<!--        <dropupload w:onBind="initHoverClass(this)" detection="none" content="Click or drag files here"-->
+<!--                    width="200px"-->
+<!--                    apply="zk_core.com.upload.FileUploaderDdComposer"-->
+<!--                    onUpload="@command('doUploadFiles', files=event.medias)">-->
+<!--        </dropupload>-->
+<!--        <image id="image" />-->
+<!--    </div>-->
+</zk>

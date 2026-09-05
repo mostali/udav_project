@@ -1,0 +1,6 @@
+private @Getter boolean {{NAME}};
+
+public Object string({{TYPE}}... {{NAME}}) {
+    this.{{NAME}} = ARG.toDefOr(null, {{NAME}});
+    return this;
+}

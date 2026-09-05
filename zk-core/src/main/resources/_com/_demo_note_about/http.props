@@ -1,0 +1,14 @@
+<!-- <h2 class="head">HTTP REQUEST</h2> -->
+
+<ul class="ulBody">
+    <li>GET, POST, PUT, DELETE ...</li>
+    <li>JsonPath, XPath для обработки ответов</li>
+</ul>
+
+<pre>
+GET http://domain.com/api/v1/auth/login
+--#$.token
+--Content-Type:application/json
+{ "password": "********",  "userName": "*******" }
+</pre>
+

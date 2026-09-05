@@ -1,0 +1,31 @@
+<!-- <h2 class="head">ТЕКСТОВЫЕ ДАННЫЕ</h2> -->
+
+<h3 class="ulHead">Типы форматирования</h3>
+
+<ul class="ulBody">
+    <li>MD</li>
+    <li>HTML</li>
+</ul>
+
+<h3 class="ulHead">Спец. типы</h3>
+
+<ul class="ulBody">
+    <li>Send GET/POST/other</li>
+    <li>Kafka</li>
+    <li>SQL</li>
+    <li>Send messages to email,tg</li>
+    <li>Execute Jar</li>
+    <li>Mvel script's</li>
+    <li>Groovy script's</li>
+    <li>Bash script's</li>
+    <li>Quartz task's, Cron</li>
+</ul>
+
+
+<!-- <style> -->
+<!-- .ulHead{background-color:silver} -->
+<!-- .ulBody{font-size:30px} -->
+<!-- .mono{font-family: "Noto Sans Mono", monospace;} -->
+<!-- .center{margin:0 auto;display:block;text-align:center;} -->
+<!-- </style> -->
+
